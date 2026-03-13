@@ -171,9 +171,12 @@
     .model-option        { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; transition: background var(--ease); }
     .model-option:hover  { background: var(--hover-bg); }
     .model-option.sel    { color: var(--accent); }
+    .model-option.omega  { opacity: 0.85; }
     .model-opt-name      { flex: 1; font-weight: 500; }
     .model-opt-desc      { font-size: 11px; color: var(--subtle); }
     .model-opt-chk       { color: var(--accent); font-size: 13px; }
+    .model-soon-badge    { font-size: 10px; padding: 2px 6px; border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; color: var(--subtle); }
+    .model-divider       { height: 1px; margin: 2px 10px; background: rgba(255,255,255,0.1); }
 
     /* User profile */
     .user-profile         { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-radius: 8px; cursor: pointer; transition: background var(--ease); }
@@ -210,6 +213,19 @@
       max-width: 800px; margin: 0 auto;
       padding: 28px 24px 10px; min-height: 100%;
       display: flex; flex-direction: column;
+    }
+
+    #omega-banner {
+      display: none;
+      margin: 0 auto 10px;
+      max-width: 800px;
+      width: calc(100% - 48px);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: var(--subtle);
+      font-size: 13px;
     }
 
     /* =====================================================================
@@ -361,6 +377,7 @@
       .suggestion-grid  { grid-template-columns: 1fr; }
       #main             { width: 100vw; }
       #chat-inner       { width: 100%; max-width: none; padding: 18px 14px 8px; }
+      #omega-banner     { width: calc(100% - 24px); margin-bottom: 8px; }
       #empty-state      { padding: 24px 8px 12px; justify-content: flex-start; }
       .empty-title      { font-size: 28px; }
       .empty-subtitle   { font-size: 14px; margin-bottom: 20px; }
@@ -442,6 +459,8 @@
       </div>
     </header>
 
+    <div id="omega-banner">BaobabGPT Omega is coming soon. Be the first to know when it launches.</div>
+
     <!-- Chat scroll area -->
     <div id="chat-scroll">
       <div id="chat-inner"></div>
@@ -490,6 +509,7 @@ const MODELS = [
   { id: "standard", icon: "🧠", name: "BaobabGPT Standard", desc: "Best for most tasks" },
   { id: "pro",      icon: "🔬", name: "BaobabGPT Pro",      desc: "Advanced reasoning"  },
   { id: "research", icon: "🌐", name: "BaobabGPT Research", desc: "Web search + sources" },
+  { id: "omega",    icon: "✨", name: "BaobabGPT Omega",    desc: "Most powerful model. Coming soon.", comingSoon: true },
 ];
 
 /* ======================================================================
@@ -703,6 +723,11 @@ const getActiveChat = () => state.chats.find(c => c.id === state.activeChatId) |
    API CALL (real or mock)
 ====================================================================== */
 async function callAPI(message, sessionId) {
+  if (state.currentModel === 'omega') {
+    await sleep(250);
+    return "BaobabGPT Omega is coming soon. Stay tuned.";
+  }
+
   if (CONFIG.USE_MOCK) {
     await sleep(700 + Math.random() * 500);
     return MOCK[state.mockIdx++ % MOCK.length];
@@ -950,14 +975,22 @@ function renderSidebar() {
 function renderDropdown() {
   const dd = $('model-dropdown');
   if (!dd) return;
-  dd.innerHTML = MODELS.map(m =>
-    `<div class="model-option ${m.id === state.currentModel ? 'sel' : ''}" onclick="selectModel('${m.id}')">
-       <span>${m.icon}</span>
-       <span class="model-opt-name">${m.name}</span>
-       <span class="model-opt-desc">${m.desc}</span>
-       ${m.id === state.currentModel ? '<span class="model-opt-chk">&#x2713;</span>' : ''}
-     </div>`
-  ).join('');
+  const parts = [];
+  MODELS.forEach((m, idx) => {
+    if (m.id === 'omega') {
+      parts.push('<div class="model-divider"></div>');
+    }
+    parts.push(
+      `<div class="model-option ${m.id === state.currentModel ? 'sel' : ''} ${m.id === 'omega' ? 'omega' : ''}" onclick="selectModel('${m.id}')">
+         <span>${m.icon}</span>
+         <span class="model-opt-name">${m.name}</span>
+         <span class="model-opt-desc">${m.desc}</span>
+         ${m.comingSoon ? '<span class="model-soon-badge">Coming Soon</span>' : ''}
+         ${m.id === state.currentModel ? '<span class="model-opt-chk">&#x2713;</span>' : ''}
+       </div>`
+    );
+  });
+  dd.innerHTML = parts.join('');
 }
 
 function selectModel(id) {
@@ -965,6 +998,7 @@ function selectModel(id) {
   const m = MODELS.find(m => m.id === id);
   $('model-icon').textContent  = m.icon;
   $('model-label').textContent = m.name;
+  $('omega-banner').style.display = id === 'omega' ? 'block' : 'none';
   renderDropdown();
   closeDropdown();
   updatePlaceholder();
@@ -991,6 +1025,8 @@ const updatePlaceholder = () => {
   const inp = $('message-input');
   if (inp) inp.placeholder = state.currentModel === 'research'
     ? 'Ask BaobabGPT to research anything…'
+    : state.currentModel === 'omega'
+    ? 'BaobabGPT Omega is coming soon…'
     : 'Message BaobabGPT';
 };
 
@@ -1058,6 +1094,7 @@ function init() {
 
   renderSidebar();
   renderArea();
+  $('omega-banner').style.display = state.currentModel === 'omega' ? 'block' : 'none';
   wireEvents();
   updatePlaceholder();
   focusInput();
