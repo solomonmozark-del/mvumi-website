@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mvumi</title>
+    <meta
+      name="description"
+      content="Mvumi website - a minimalist digital presence."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Playfair+Display:wght@600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Mvumi home">mvumi</a>
+      <nav class="menu" aria-label="Main navigation">
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
+
+    <main class="hero">
+      <p class="kicker">MVUMI WEBSITE</p>
+      <h1>Minimal presence.<br />Maximum clarity.</h1>
+      <p class="lead" id="about">
+        Mvumi is a calm digital space focused on clear messaging, clean design,
+        and meaningful detail.
+      </p>
+      <a class="cta" href="mailto:hello@mvumi.website">hello@mvumi.website</a>
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <p>© <span id="year"></span> Mvumi</p>
+      <p>Built for mvumi.website</p>
+    </footer>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
