@@ -113,14 +113,15 @@
       font-size: 14px;
       font-weight: 600;
       color: var(--text);
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-      border: 1px solid var(--border);
-      transition: background var(--ease), border-color var(--ease), transform var(--ease);
+      background: linear-gradient(135deg, rgba(16,163,127,0.18), rgba(16,163,127,0.08));
+      border: 1px solid rgba(16,163,127,0.3);
+      transition: background var(--ease), border-color var(--ease), transform var(--ease), box-shadow var(--ease);
     }
     #new-chat-btn:hover {
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-      border-color: var(--border-strong);
+      background: linear-gradient(135deg, rgba(16,163,127,0.28), rgba(16,163,127,0.14));
+      border-color: rgba(16,163,127,0.55);
       transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(16,163,127,0.22);
     }
 
     /* Chat history */
@@ -196,6 +197,20 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 120px);
     }
 
+    /* Desktop top bar — model chip */
+    #desktop-topbar {
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px 24px; flex-shrink: 0; border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+    }
+    .model-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; color: var(--subtle);
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--hover-bg);
+    }
+    .model-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; box-shadow: 0 0 6px var(--accent); }
+
     /* Mobile header */
     #mobile-header { display: none; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     #hamburger     { padding: 6px; border-radius: 6px; color: var(--text); display: flex; transition: background var(--ease); }
@@ -238,15 +253,25 @@
       gap: 6px; animation: fadeIn 0.3s ease;
     }
 
-    .empty-logo     { width: 74px; height: 74px; background: linear-gradient(145deg, #12b48b, #0f8f6f); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; color: #fff; margin-bottom: 12px; box-shadow: 0 0 0 8px rgba(16,163,127,0.12), 0 16px 34px rgba(16,163,127,0.3); }
+    .empty-logo     { width: 74px; height: 74px; background: linear-gradient(145deg, #12b48b, #0f8f6f); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; color: #fff; margin-bottom: 12px; box-shadow: 0 0 0 8px rgba(16,163,127,0.12), 0 16px 34px rgba(16,163,127,0.3); animation: logoGlow 3s ease-in-out infinite; }
     .empty-title    { font-size: 34px; font-weight: 650; letter-spacing: -0.03em; }
     .empty-subtitle { font-size: 16px; color: var(--subtle); margin-bottom: 28px; }
 
     .suggestion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 580px; }
 
-    .suggestion-card       { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: left; font-size: 14px; line-height: 1.55; cursor: pointer; color: var(--text); transition: background var(--ease), border-color var(--ease), transform var(--ease), box-shadow var(--ease); }
-    .suggestion-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); transform: translateY(-2px); }
-    .suggestion-card .s-icon { font-size: 20px; display: block; margin-bottom: 8px; }
+    .suggestion-card       { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: left; font-size: 14px; line-height: 1.55; cursor: pointer; color: var(--text); transition: background var(--ease), border-color var(--ease), transform var(--ease), box-shadow var(--ease); position: relative; overflow: hidden; }
+    .suggestion-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.22); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .suggestion-card::before { content: ''; position: absolute; inset: 0; border-radius: var(--radius); opacity: 0; transition: opacity var(--ease); }
+    .suggestion-card:hover::before { opacity: 1; }
+    .suggestion-card:nth-child(1) { border-color: rgba(16,163,127,0.22); }
+    .suggestion-card:nth-child(1):hover { border-color: rgba(16,163,127,0.45); box-shadow: 0 8px 24px rgba(16,163,127,0.15); }
+    .suggestion-card:nth-child(2) { border-color: rgba(99,102,241,0.22); }
+    .suggestion-card:nth-child(2):hover { border-color: rgba(99,102,241,0.45); box-shadow: 0 8px 24px rgba(99,102,241,0.15); }
+    .suggestion-card:nth-child(3) { border-color: rgba(245,158,11,0.22); }
+    .suggestion-card:nth-child(3):hover { border-color: rgba(245,158,11,0.45); box-shadow: 0 8px 24px rgba(245,158,11,0.15); }
+    .suggestion-card:nth-child(4) { border-color: rgba(239,68,68,0.22); }
+    .suggestion-card:nth-child(4):hover { border-color: rgba(239,68,68,0.45); box-shadow: 0 8px 24px rgba(239,68,68,0.15); }
+    .suggestion-card .s-icon { font-size: 22px; display: block; margin-bottom: 8px; }
 
     /* =====================================================================
        MESSAGES
@@ -304,9 +329,21 @@
        TYPING INDICATOR
     ===================================================================== */
     .typing-indicator     { display: flex; align-items: center; gap: 5px; padding: 8px 0; }
-    .typing-dot           { width: 8px; height: 8px; background: var(--subtle); border-radius: 50%; animation: bounce 1.2s ease infinite; }
+    .typing-dot           { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: typingBounce 1.4s ease-in-out infinite; }
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* =====================================================================
+       MESSAGE ACTIONS
+    ===================================================================== */
+    .msg-actions { display: flex; align-items: center; gap: 4px; margin-top: 8px; opacity: 0; transition: opacity var(--ease); }
+    .message-row.ai:hover .msg-actions,
+    .message-row.ai:focus-within .msg-actions { opacity: 1; }
+    .msg-action-btn { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-size: 12px; color: var(--subtle); background: none; border: 1px solid transparent; transition: background var(--ease), color var(--ease), border-color var(--ease); cursor: pointer; }
+    .msg-action-btn:hover,
+    .msg-action-btn:focus-visible { background: var(--hover-bg); color: var(--text); border-color: var(--border); outline: none; }
+    .msg-action-btn.liked  { color: var(--accent); }
+    .msg-action-btn.disliked { color: #e05; }
 
     /* =====================================================================
        RESEARCH MODE
@@ -366,6 +403,8 @@
     @keyframes fadeIn       { from { opacity: 0; } to { opacity: 1; } }
     @keyframes fadeInUp     { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes bounce       { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-7px); } }
+    @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-6px); opacity: 1; } }
+    @keyframes logoGlow     { 0%,100% { box-shadow: 0 0 0 8px rgba(16,163,127,0.12), 0 16px 34px rgba(16,163,127,0.3); } 50% { box-shadow: 0 0 0 12px rgba(16,163,127,0.18), 0 20px 42px rgba(16,163,127,0.42); } }
 
     /* =====================================================================
        RESPONSIVE — mobile ≤ 768px
@@ -373,6 +412,7 @@
     @media (max-width: 768px) {
       #sidebar          { position: fixed; top: 0; left: 0; bottom: 0; width: min(86vw, 320px); min-width: min(86vw, 320px); transform: translateX(-100%); transition: transform 0.3s ease; animation: none; z-index: 100; }
       #sidebar.open     { transform: translateX(0); }
+      #desktop-topbar   { display: none; }
       #mobile-header    { display: flex; }
       .suggestion-grid  { grid-template-columns: 1fr; }
       #main             { width: 100vw; }
@@ -388,6 +428,7 @@
       .input-wrapper    { border-radius: 18px; padding: 10px 10px 10px 12px; }
       #message-input    { font-size: 16px; }
       .input-footer     { display: none; }
+      .msg-actions      { opacity: 1; }
     }
   </style>
 </head>
@@ -444,6 +485,14 @@
        MAIN AREA
   ================================================================ -->
   <main id="main">
+    <!-- Desktop top bar -->
+    <div id="desktop-topbar">
+      <div class="model-chip">
+        <span class="model-chip-dot"></span>
+        <span id="topbar-model-label">BaobabGPT Standard</span>
+      </div>
+    </div>
+
     <!-- Mobile header -->
     <header id="mobile-header">
       <button id="hamburger" aria-label="Open menu">
@@ -652,6 +701,7 @@ async function streamText(el, fullText) {
   }
   // Final pass: full markdown + syntax highlighting
   el.innerHTML = renderMd(fullText);
+  el.dataset.md = fullText;
   el.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
 }
 
@@ -664,6 +714,39 @@ function copyCode(btn) {
     btn.textContent = 'Copied!';
     setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
   }).catch(() => { btn.textContent = 'Error'; });
+}
+
+/* ======================================================================
+   MESSAGE ACTIONS — copy text and thumbs up/down
+====================================================================== */
+function copyMsgText(btn) {
+  const bubble = btn.closest('.message-content').querySelector('.msg-bubble');
+  // Prefer the original markdown stored in data-md; fall back to visible text
+  const text = bubble.dataset.md || bubble.innerText || bubble.textContent || '';
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  }).catch(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = 'Failed';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  });
+}
+
+function thumbMsg(btn, dir) {
+  const parent = btn.closest('.msg-actions');
+  const up   = parent.querySelectorAll('.msg-action-btn')[1];
+  const down = parent.querySelectorAll('.msg-action-btn')[2];
+  if (dir === 'up') {
+    const wasLiked = up.classList.contains('liked');
+    up.classList.toggle('liked', !wasLiked);
+    down.classList.remove('disliked');
+  } else {
+    const wasDisliked = down.classList.contains('disliked');
+    down.classList.toggle('disliked', !wasDisliked);
+    up.classList.remove('liked');
+  }
 }
 
 /* ======================================================================
@@ -871,7 +954,21 @@ function buildAIRow() {
   r.className = 'message-row ai';
   r.innerHTML =
     `<div class="message-avatar ai">B</div>
-     <div class="message-content"><div class="msg-bubble"></div></div>`;
+     <div class="message-content">
+       <div class="msg-bubble"></div>
+       <div class="msg-actions">
+         <button class="msg-action-btn" title="Copy" onclick="copyMsgText(this)">
+           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+           Copy
+         </button>
+         <button class="msg-action-btn" title="Good response" onclick="thumbMsg(this,'up')">
+           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+         </button>
+         <button class="msg-action-btn" title="Bad response" onclick="thumbMsg(this,'down')">
+           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+         </button>
+       </div>
+     </div>`;
   return r;
 }
 
@@ -895,9 +992,24 @@ function renderMessages(chat) {
          </div>
          <div class="message-avatar uav">${CONFIG.USER_NAME[0]}</div>`;
     } else {
+      const msgActionsHTML =
+        `<div class="msg-actions">
+           <button class="msg-action-btn" title="Copy" onclick="copyMsgText(this)">
+             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+             Copy
+           </button>
+           <button class="msg-action-btn" title="Good response" onclick="thumbMsg(this,'up')">
+             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+           </button>
+           <button class="msg-action-btn" title="Bad response" onclick="thumbMsg(this,'down')">
+             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+           </button>
+         </div>`;
       row.innerHTML =
         `<div class="message-avatar ai">B</div>
-         <div class="message-content"><div class="msg-bubble">${renderMd(msg.content)}</div></div>`;
+         <div class="message-content"><div class="msg-bubble">${renderMd(msg.content)}</div>${msgActionsHTML}</div>`;
+      const bubble = row.querySelector('.msg-bubble');
+      if (bubble) bubble.dataset.md = msg.content;
       row.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
     }
     list.appendChild(row);
@@ -998,6 +1110,8 @@ function selectModel(id) {
   const m = MODELS.find(m => m.id === id);
   $('model-icon').textContent  = m.icon;
   $('model-label').textContent = m.name;
+  const tl = $('topbar-model-label');
+  if (tl) tl.textContent = m.name;
   $('omega-banner').style.display = id === 'omega' ? 'block' : 'none';
   renderDropdown();
   closeDropdown();
@@ -1091,6 +1205,8 @@ function init() {
   const m = MODELS.find(m => m.id === state.currentModel) || MODELS[1];
   $('model-icon').textContent  = m.icon;
   $('model-label').textContent = m.name;
+  const tl = $('topbar-model-label');
+  if (tl) tl.textContent = m.name;
 
   renderSidebar();
   renderArea();
