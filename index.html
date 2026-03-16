@@ -1,1106 +1,1520 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
   <title>BaobabGPT</title>
-  <!-- Favicon: green rounded square with B -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2310A37F'/><text y='23' x='16' text-anchor='middle' font-family='Arial,sans-serif' font-size='20' font-weight='bold' fill='white'>B</text></svg>" />
-  <!-- Google Fonts: Inter -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235d5ad8'/><text y='23' x='16' text-anchor='middle' font-family='Arial,sans-serif' font-size='20' font-weight='bold' fill='white'>B</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <!-- Highlight.js for code syntax highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
   <style>
-    /* =====================================================================
-       CSS VARIABLES — change colours and sizes here to retheme the app
-    ===================================================================== */
-    :root {
-      --bg:            #212121;
-      --bg-elev:       #262626;
-      --sidebar-bg:    #171717;
-      --user-msg-bg:   #2F2F2F;
-      --input-bg:      #2B2B2B;
-      --accent:        #10A37F;
-      --accent-hover:  #0D8C6D;
-      --accent-soft:   rgba(16,163,127,0.18);
-      --text:          #ECECEC;
-      --subtle:        #8E8EA0;
-      --border:        rgba(255,255,255,0.09);
-      --border-strong: rgba(255,255,255,0.16);
-      --hover-bg:      rgba(255,255,255,0.065);
-      --shadow-lg:     0 18px 42px rgba(0,0,0,0.45);
-      --shadow-sm:     0 4px 14px rgba(0,0,0,0.24);
-      --sidebar-w:     260px;
-      --radius:        14px;
-      --ease:          0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
-    }
-
-    /* =====================================================================
-       RESET & BASE
-    ===================================================================== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%;
-      min-height: 100dvh;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background:
-        radial-gradient(circle at 10% -10%, rgba(16,163,127,0.12), transparent 28%),
-        radial-gradient(circle at 95% 10%, rgba(255,255,255,0.06), transparent 22%),
-        var(--bg);
-      color: var(--text);
-      overflow: hidden;
-      font-size: 15px;
-      letter-spacing: 0.01em;
+    html, body { width: 100%; height: 100%; }
+
+    :root {
+      --bg: #f7f7fa;
+      --panel: #f2f3f8;
+      --line: #e5e7ef;
+      --ink: #151a2c;
+      --muted: #7b8093;
+      --soft: #ffffff;
+      --accent: #5d5ad8;
+      --accent-hover: #4745c4;
+      --accent-soft: rgba(93,90,216,0.09);
+      --sidebar-w: 240px;
+      --ease: 0.2s cubic-bezier(0.18,0.7,0.2,1);
+      --radius: 12px;
+      --shadow-sm: 0 2px 10px rgba(21,26,44,0.07);
+      --shadow-md: 0 8px 28px rgba(21,26,44,0.1);
     }
-    button   { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; font-size: inherit; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 14% 18%, #eef1ff 0%, rgba(238,241,255,0) 38%), var(--bg);
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; font-size: inherit; }
     textarea { font-family: inherit; }
-    a        { color: var(--accent); }
-    hr       { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+    a { text-decoration: none; }
 
-    /* =====================================================================
-       APP SHELL
-    ===================================================================== */
-    #app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
+    /*  SHELL  */
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+    }
 
-    /* =====================================================================
-       SIDEBAR
-    ===================================================================== */
-    #sidebar {
-      width: var(--sidebar-w);
-      min-width: var(--sidebar-w);
-      background: var(--sidebar-bg);
+    /*  SIDEBAR  */
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: #f0f1f7;
       display: flex;
       flex-direction: column;
       height: 100vh;
-      height: 100dvh;
-      border-right: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      animation: slideInLeft 0.38s ease both;
-      position: relative;
-      z-index: 100;
-    }
-
-    .sidebar-top  { padding: 12px 12px 6px; flex-shrink: 0; }
-
-    .logo         { display: flex; align-items: center; gap: 10px; padding: 6px 4px 14px; }
-    .logo-icon    {
-      width: 34px;
-      height: 34px;
-      background: linear-gradient(145deg, #12b48b, #0f8f6f);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 17px;
-      color: #fff;
+      overflow: hidden;
       flex-shrink: 0;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.26), 0 8px 18px rgba(16,163,127,0.35);
     }
-    .logo-name    { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
 
-    #new-chat-btn {
-      width: 100%;
+    .sidebar-top { padding: 16px 12px 10px; flex-shrink: 0; }
+
+    .logo {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 11px 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-      border: 1px solid var(--border);
-      transition: background var(--ease), border-color var(--ease), transform var(--ease);
-    }
-    #new-chat-btn:hover {
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-      border-color: var(--border-strong);
-      transform: translateY(-1px);
+      padding: 4px 6px 14px;
     }
 
-    /* Chat history */
-    #sidebar-history {
-      flex: 1; overflow-y: auto; padding: 4px 8px;
-      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(145deg, #6664ea, #4a48c8);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff;
+      box-shadow: 0 4px 14px rgba(93,90,216,0.35);
+      flex-shrink: 0;
     }
-    #sidebar-history::-webkit-scrollbar       { width: 4px; }
-    #sidebar-history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-    .history-group-label { font-size: 12px; font-weight: 500; color: var(--subtle); padding: 12px 8px 5px; }
-
-    .chat-item        { display: flex; align-items: center; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: 14px; color: var(--text); transition: background var(--ease), border-color var(--ease); border: 1px solid transparent; }
-    .chat-item:hover  { background: var(--hover-bg); }
-    .chat-item.active { background: rgba(16,163,127,0.14); border-color: rgba(16,163,127,0.35); }
-
-    .chat-item-title  { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .chat-item-delete                     { display: none; padding: 4px; border-radius: 4px; color: var(--subtle); transition: color var(--ease); flex-shrink: 0; align-items: center; }
-    .chat-item:hover .chat-item-delete    { display: flex; }
-    .chat-item-delete:hover               { color: #e05; }
-
-    /* Sidebar bottom */
-    .sidebar-bottom  { padding: 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
-
-    /* Model selector */
-    .model-selector-wrap { position: relative; margin-bottom: 10px; }
-
-    #model-selector-btn {
-      width: 100%; display: flex; align-items: center; gap: 8px;
-      padding: 9px 10px; border-radius: 8px; font-size: 13px;
-      color: var(--text); background: var(--hover-bg);
-      border: 1px solid var(--border); transition: background var(--ease);
+    .logo-name {
+      font-weight: 700; font-size: 15px;
+      letter-spacing: -0.01em; color: #1e2445;
     }
-    #model-selector-btn:hover { background: rgba(255,255,255,0.1); }
 
-    #model-label  { flex: 1; text-align: left; font-weight: 500; }
-    .model-caret  { color: var(--subtle); }
+    .new-chat-btn {
+      width: 100%;
+      display: flex; align-items: center; gap: 9px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      font-size: 13.5px; font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(93,90,216,0.18);
+      transition: background var(--ease), transform var(--ease);
+    }
+    .new-chat-btn:hover { background: rgba(93,90,216,0.13); transform: translateY(-1px); }
+
+    .sidebar-nav { padding: 8px 12px 2px; flex-shrink: 0; }
+
+    .side-btn {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 10px;
+      border-radius: var(--radius);
+      font-size: 13.5px; color: #525880;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      width: 100%; margin-bottom: 2px;
+      transition: background var(--ease), border-color var(--ease), color var(--ease);
+    }
+    .side-btn:hover { background: rgba(93,90,216,0.07); border-color: rgba(93,90,216,0.12); }
+    .side-btn.active {
+      background: rgba(93,90,216,0.1);
+      border-color: rgba(93,90,216,0.22);
+      color: #2a2f5a; font-weight: 600;
+    }
+
+    /* History */
+    .sidebar-hist-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .hist-section-label {
+      font-size: 10.5px; font-weight: 600; color: var(--muted);
+      padding: 10px 20px 4px; letter-spacing: 0.06em;
+      text-transform: uppercase; flex-shrink: 0;
+    }
+    .sidebar-hist {
+      flex: 1; overflow-y: auto; padding: 0 10px 8px;
+      scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.08) transparent;
+    }
+    .sidebar-hist::-webkit-scrollbar { width: 4px; }
+    .sidebar-hist::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+    .hist-group-label { font-size: 11px; color: var(--muted); padding: 8px 8px 3px; font-weight: 500; }
+
+    .hist-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 10px;
+      cursor: pointer; font-size: 13px; color: #525880;
+      border: 1px solid transparent;
+      transition: background var(--ease); margin-bottom: 1px;
+    }
+    .hist-item:hover { background: rgba(93,90,216,0.07); border-color: rgba(93,90,216,0.1); }
+    .hist-item.active {
+      background: rgba(93,90,216,0.1); border-color: rgba(93,90,216,0.2);
+      color: #2a2f5a; font-weight: 500;
+    }
+    .hist-item-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hist-delete {
+      display: none; color: var(--muted); padding: 3px; border-radius: 4px;
+      align-items: center; flex-shrink: 0; transition: color var(--ease);
+    }
+    .hist-item:hover .hist-delete { display: flex; }
+    .hist-delete:hover { color: #d45; }
+
+    .sidebar-bottom { padding: 12px; border-top: 1px solid var(--line); flex-shrink: 0; }
+    .user-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 6px; border-radius: 9px; cursor: default;
+    }
+    .user-av {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #6b4fbb, #9b66db);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-email { font-size: 12.5px; color: #4a5070; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /*  APP MAIN  */
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    /*  TOPBAR  */
+    .topbar {
+      padding: 11px 24px 10px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(229,231,239,0.8);
+      background: rgba(247,247,250,0.9);
+      backdrop-filter: blur(8px);
+      flex-shrink: 0;
+    }
+    .model-chip {
+      background: var(--soft); border: 1px solid var(--line);
+      border-radius: 999px; padding: 7px 14px;
+      font-size: 13px; color: #3d4258; font-weight: 600;
+      box-shadow: var(--shadow-sm); flex-shrink: 0;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+    .model-selector-wrap { position: relative; }
+
+    .model-sel-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--soft);
+      font-size: 13px; font-weight: 600; color: #3d4258;
+      cursor: pointer; box-shadow: var(--shadow-sm);
+      transition: background var(--ease), border-color var(--ease);
+    }
+    .model-sel-btn:hover { background: #eceff8; border-color: #d0d4e8; }
 
     .model-dropdown {
-      position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
-      background: #2A2A2A; border: 1px solid var(--border); border-radius: 10px;
-      overflow: hidden; z-index: 200; display: none;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.5); animation: fadeInUp 0.14s ease both;
+      position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 220px; background: var(--soft);
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 6px; box-shadow: var(--shadow-md);
+      z-index: 250; display: none;
+      animation: fadeDown 0.14s ease both;
     }
     .model-dropdown.open { display: block; }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
-    .model-option        { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; transition: background var(--ease); }
-    .model-option:hover  { background: var(--hover-bg); }
-    .model-option.sel    { color: var(--accent); }
-    .model-option.omega  { opacity: 0.85; }
-    .model-opt-name      { flex: 1; font-weight: 500; }
-    .model-opt-desc      { font-size: 11px; color: var(--subtle); }
-    .model-opt-chk       { color: var(--accent); font-size: 13px; }
-    .model-soon-badge    { font-size: 10px; padding: 2px 6px; border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; color: var(--subtle); }
-    .model-divider       { height: 1px; margin: 2px 10px; background: rgba(255,255,255,0.1); }
-
-    /* User profile */
-    .user-profile         { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-radius: 8px; cursor: pointer; transition: background var(--ease); }
-    .user-profile:hover   { background: var(--hover-bg); }
-    .user-avatar          { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#6B4FBB,#9B66DB); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; }
-    .user-name            { flex: 1; font-size: 14px; font-weight: 500; }
-    .settings-btn         { color: var(--subtle); padding: 4px; border-radius: 4px; display: flex; transition: color var(--ease); }
-    .settings-btn:hover   { color: var(--text); }
-
-    /* =====================================================================
-       MAIN AREA
-    ===================================================================== */
-    #main {
-      flex: 1; display: flex; flex-direction: column;
-      height: 100vh; height: 100dvh; overflow: hidden;
-      animation: fadeIn 0.4s ease 0.1s both; min-width: 0;
-      background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 120px);
+    .model-opt {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 9px;
+      cursor: pointer; transition: background var(--ease);
     }
+    .model-opt:hover { background: var(--panel); }
+    .model-opt.sel { background: var(--accent-soft); }
+    .model-opt-icon { font-size: 16px; width: 24px; text-align: center; }
+    .model-opt-info { flex: 1; }
+    .model-opt-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .model-opt-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .model-opt-check { color: var(--accent); font-size: 14px; font-weight: 700; }
 
-    /* Mobile header */
-    #mobile-header { display: none; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    #hamburger     { padding: 6px; border-radius: 6px; color: var(--text); display: flex; transition: background var(--ease); }
-    #hamburger:hover { background: var(--hover-bg); }
-
-    /* Scrollable chat */
-    #chat-scroll {
-      flex: 1; overflow-y: auto;
-      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+    /*  FEED  */
+    .feed {
+      overflow-y: auto; padding: 8px 20px 12px;
+      scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.1) transparent;
     }
-    #chat-scroll::-webkit-scrollbar       { width: 6px; }
-    #chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+    .feed::-webkit-scrollbar { width: 6px; }
+    .feed::-webkit-scrollbar-thumb { background: #d4d8ec; border-radius: 999px; }
 
-    #chat-inner {
-      max-width: 800px; margin: 0 auto;
-      padding: 28px 24px 10px; min-height: 100%;
+    /* Welcome state */
+    .welcome-wrap {
       display: flex; flex-direction: column;
-    }
-
-    #omega-banner {
-      display: none;
-      margin: 0 auto 10px;
-      max-width: 800px;
-      width: calc(100% - 48px);
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.05);
-      color: var(--subtle);
-      font-size: 13px;
-    }
-
-    /* =====================================================================
-       EMPTY STATE
-    ===================================================================== */
-    #empty-state {
-      flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      text-align: center; padding: 40px 20px 20px;
-      gap: 6px; animation: fadeIn 0.3s ease;
+      min-height: 52vh; gap: 4px;
+      padding: 40px 20px 20px; text-align: center;
     }
+    .welcome-icon {
+      width: 70px; height: 70px;
+      background: linear-gradient(145deg, #6664ea, #4a48c8);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; font-weight: 700; color: #fff;
+      margin-bottom: 12px;
+      box-shadow: 0 0 0 8px rgba(93,90,216,0.09), 0 14px 32px rgba(93,90,216,0.28);
+    }
+    .welcome-title {
+      font-size: clamp(26px, 4vw, 38px); font-weight: 700;
+      color: #171d38; letter-spacing: -0.025em;
+    }
+    .welcome-sub { font-size: 15px; color: var(--muted); margin-bottom: 26px; }
 
-    .empty-logo     { width: 74px; height: 74px; background: linear-gradient(145deg, #12b48b, #0f8f6f); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; color: #fff; margin-bottom: 12px; box-shadow: 0 0 0 8px rgba(16,163,127,0.12), 0 16px 34px rgba(16,163,127,0.3); }
-    .empty-title    { font-size: 34px; font-weight: 650; letter-spacing: -0.03em; }
-    .empty-subtitle { font-size: 16px; color: var(--subtle); margin-bottom: 28px; }
-
-    .suggestion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 580px; }
-
-    .suggestion-card       { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: left; font-size: 14px; line-height: 1.55; cursor: pointer; color: var(--text); transition: background var(--ease), border-color var(--ease), transform var(--ease), box-shadow var(--ease); }
-    .suggestion-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); transform: translateY(-2px); }
-    .suggestion-card .s-icon { font-size: 20px; display: block; margin-bottom: 8px; }
-
-    /* =====================================================================
-       MESSAGES
-    ===================================================================== */
-    #messages-list { flex: 1; display: flex; flex-direction: column; padding-bottom: 16px; }
-
-    .message-row      { display: flex; gap: 14px; padding: 18px 0; animation: fadeIn 0.28s ease; }
-    .message-row.user { flex-direction: row-reverse; animation: slideInRight 0.28s ease; }
-
-    .message-avatar     { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
-    .message-avatar.ai  { background: linear-gradient(145deg, #12b48b, #0f8f6f); color: #fff; font-size: 16px; box-shadow: 0 8px 20px rgba(16,163,127,0.35); }
-    .message-avatar.uav { background: linear-gradient(145deg,#4A4A4A,#333333); color: #fff; font-size: 13px; }
-
-    .message-content               { flex: 1; max-width: calc(100% - 48px); min-width: 0; }
-    .message-row.user .message-content { display: flex; justify-content: flex-end; }
-
-    .msg-bubble { background: var(--user-msg-bg); padding: 12px 16px; border-radius: 18px; border-bottom-right-radius: 6px; font-size: 15px; line-height: 1.65; word-break: break-word; max-width: 85%; display: inline-block; border: 1px solid rgba(255,255,255,0.08); box-shadow: var(--shadow-sm); }
-    .message-row.ai .msg-bubble    { background: transparent; padding: 4px 0; max-width: 100%; border-radius: 0; line-height: 1.75; }
-
-    /* =====================================================================
-       MARKDOWN STYLES (inside .msg-bubble)
-    ===================================================================== */
-    .msg-bubble p              { margin-bottom: 10px; }
-    .msg-bubble p:last-child   { margin-bottom: 0; }
-    .msg-bubble h1             { font-size: 1.4em;  font-weight: 600; margin: 14px 0 6px; }
-    .msg-bubble h2             { font-size: 1.2em;  font-weight: 600; margin: 12px 0 5px; }
-    .msg-bubble h3             { font-size: 1.05em; font-weight: 600; margin: 10px 0 4px; }
-    .msg-bubble strong         { font-weight: 600; }
-    .msg-bubble em             { font-style: italic; }
-    .msg-bubble ul, .msg-bubble ol { padding-left: 22px; margin: 6px 0; }
-    .msg-bubble li             { margin-bottom: 4px; }
-    .msg-bubble blockquote     { border-left: 3px solid var(--accent); padding-left: 12px; margin: 8px 0; color: var(--subtle); font-style: italic; }
-    .msg-bubble a              { color: var(--accent); text-decoration: underline; }
-    .msg-bubble hr             { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
-
-    /* Tables */
-    .table-wrap                { overflow-x: auto; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border); }
-    .msg-bubble table          { border-collapse: collapse; width: 100%; }
-    .msg-bubble th             { background: rgba(255,255,255,0.06); font-weight: 600; }
-    .msg-bubble th,
-    .msg-bubble td             { border: 1px solid var(--border); padding: 8px 12px; font-size: 14px; text-align: left; }
-
-    /* Inline code */
-    .inline-code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono','Fira Code',Consolas,monospace; font-size: 0.88em; }
-
-    /* Code blocks */
-    .code-block          { border-radius: 8px; overflow: hidden; margin: 10px 0; border: 1px solid rgba(255,255,255,0.09); }
-    .code-header         { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; background: rgba(255,255,255,0.05); font-size: 12px; color: var(--subtle); font-family: monospace; }
-    .code-copy-btn       { font-size: 12px; color: var(--subtle); padding: 3px 8px; border-radius: 4px; background: none; border: none; cursor: pointer; transition: background var(--ease), color var(--ease); }
-    .code-copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-    .code-block pre      { margin: 0; overflow-x: auto; background: #1E1E1E; padding: 14px; }
-    .code-block pre code { font-family: 'JetBrains Mono','Fira Code',Consolas,monospace; font-size: 13px; line-height: 1.55; background: none; padding: 0; }
-
-    /* =====================================================================
-       TYPING INDICATOR
-    ===================================================================== */
-    .typing-indicator     { display: flex; align-items: center; gap: 5px; padding: 8px 0; }
-    .typing-dot           { width: 8px; height: 8px; background: var(--subtle); border-radius: 50%; animation: bounce 1.2s ease infinite; }
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-    /* =====================================================================
-       RESEARCH MODE
-    ===================================================================== */
-    .research-indicator { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
-    .research-step      { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--subtle); animation: fadeInUp 0.3s ease; }
-    .step-icon          { font-size: 15px; }
-
-    .source-pills       { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-    .source-pill        { background: rgba(16,163,127,0.14); border: 1px solid rgba(16,163,127,0.28); color: var(--accent); padding: 3px 10px; border-radius: 999px; font-size: 12px; cursor: pointer; transition: background var(--ease); }
-    .source-pill:hover  { background: rgba(16,163,127,0.24); }
-    .conf-bar           { margin-top: 8px; font-size: 12px; color: var(--subtle); }
-
-    /* =====================================================================
-       INPUT BAR
-    ===================================================================== */
-    #input-area    { padding: 12px 24px max(20px, env(safe-area-inset-bottom)); flex-shrink: 0; }
-    .input-outer   { max-width: 800px; margin: 0 auto; }
-
-    .input-wrapper {
-      display: flex; align-items: flex-end; gap: 8px;
-      background: linear-gradient(180deg, rgba(49,49,49,0.96), rgba(41,41,41,0.96)); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 16px; padding: 10px 12px 10px 14px;
-      transition: border-color var(--ease), box-shadow var(--ease), transform var(--ease);
+    .sug-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; width: 100%; max-width: 560px;
+    }
+    .sug-card {
+      background: var(--soft); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 14px 16px;
+      text-align: left; font-size: 13.5px; line-height: 1.5;
+      cursor: pointer; color: #303550;
+      transition: background var(--ease), border-color var(--ease), transform var(--ease), box-shadow var(--ease);
       box-shadow: var(--shadow-sm);
     }
-    .input-wrapper:focus-within { border-color: rgba(16,163,127,0.55); box-shadow: 0 0 0 4px rgba(16,163,127,0.14); transform: translateY(-1px); }
-
-    #message-input {
-      flex: 1; background: none; border: none; outline: none; resize: none;
-      color: var(--text); font-size: 15px; line-height: 1.55;
-      max-height: 120px; overflow-y: auto;
-      scrollbar-width: thin; padding: 0;
+    .sug-card:hover {
+      background: #f4f5fc; border-color: rgba(93,90,216,0.3);
+      transform: translateY(-2px); box-shadow: 0 6px 20px rgba(93,90,216,0.1);
     }
-    #message-input::placeholder { color: var(--subtle); }
+    .sug-icon { font-size: 18px; display: block; margin-bottom: 7px; }
 
-    .attach-btn       { color: var(--subtle); padding: 5px; border-radius: 6px; display: flex; align-items: center; flex-shrink: 0; margin-bottom: 2px; transition: color var(--ease), background var(--ease); }
-    .attach-btn:hover { color: var(--text); background: var(--hover-bg); }
+    /* Feed inner */
+    .feed-inner { max-width: 820px; margin: 0 auto; padding: 8px 0 130px; }
 
-    #send-btn                    { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(145deg, #12b48b, #0f8f6f); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; transition: background var(--ease), transform var(--ease), box-shadow var(--ease); box-shadow: 0 8px 18px rgba(16,163,127,0.35); }
-    #send-btn:disabled           { background: rgba(255,255,255,0.1); cursor: not-allowed; }
-    #send-btn:not(:disabled):hover { background: linear-gradient(145deg, #10a37f, #0d8c6d); transform: translateY(-1px); }
+    /*  MESSAGES  */
+    .msg {
+      margin-bottom: 18px;
+      animation: fadeSlide 0.22s ease both;
+    }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-    .input-footer { text-align: center; font-size: 12px; color: var(--subtle); margin-top: 8px; }
+    .msg-row { display: flex; gap: 12px; align-items: flex-start; }
+    .msg.user .msg-row { flex-direction: row-reverse; }
 
-    /* =====================================================================
-       MOBILE OVERLAY
-    ===================================================================== */
-    #sidebar-overlay      { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 90; }
-    #sidebar-overlay.open { display: block; animation: fadeIn 0.2s ease; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+    }
+    .msg.assistant .avatar {
+      background: linear-gradient(145deg, #6664ea, #4a48c8);
+      color: #fff; box-shadow: 0 3px 10px rgba(93,90,216,0.3);
+    }
+    .msg.user .avatar { background: #e6e8f4; color: #4b5168; }
 
-    /* =====================================================================
-       ANIMATIONS
-    ===================================================================== */
-    @keyframes slideInLeft  { from { transform: translateX(-24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideInRight { from { transform: translateX(22px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes fadeIn       { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes fadeInUp     { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes bounce       { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-7px); } }
+    .msg-body { flex: 1; max-width: calc(100% - 42px); min-width: 0; }
+    .msg.user .msg-body { display: flex; justify-content: flex-end; }
 
-    /* =====================================================================
-       RESPONSIVE — mobile ≤ 768px
-    ===================================================================== */
-    @media (max-width: 768px) {
-      #sidebar          { position: fixed; top: 0; left: 0; bottom: 0; width: min(86vw, 320px); min-width: min(86vw, 320px); transform: translateX(-100%); transition: transform 0.3s ease; animation: none; z-index: 100; }
-      #sidebar.open     { transform: translateX(0); }
-      #mobile-header    { display: flex; }
-      .suggestion-grid  { grid-template-columns: 1fr; }
-      #main             { width: 100vw; }
-      #chat-inner       { width: 100%; max-width: none; padding: 18px 14px 8px; }
-      #omega-banner     { width: calc(100% - 24px); margin-bottom: 8px; }
-      #empty-state      { padding: 24px 8px 12px; justify-content: flex-start; }
-      .empty-title      { font-size: 28px; }
-      .empty-subtitle   { font-size: 14px; margin-bottom: 20px; }
-      .message-row      { gap: 10px; padding: 14px 0; }
-      .message-content  { max-width: calc(100% - 40px); }
-      .msg-bubble       { max-width: 100%; font-size: 14px; padding: 11px 14px; }
-      #input-area       { padding: 10px 12px max(16px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(33,33,33,0), rgba(33,33,33,0.92) 28%, rgba(33,33,33,1)); }
-      .input-wrapper    { border-radius: 18px; padding: 10px 10px 10px 12px; }
-      #message-input    { font-size: 16px; }
-      .input-footer     { display: none; }
+    .msg-bubble {
+      max-width: min(720px, 100%);
+      font-size: 14.5px; line-height: 1.72;
+      color: #1d2236; word-break: break-word;
+    }
+    .msg.user .msg-bubble {
+      background: linear-gradient(160deg, #eceefc, #e8ebf7);
+      border: 1px solid #dce0f2; border-radius: 18px; border-top-right-radius: 5px;
+      padding: 12px 16px; box-shadow: var(--shadow-sm);
+      white-space: pre-wrap;
+    }
+    .msg.assistant .msg-bubble {
+      background: transparent; padding: 2px 0;
+      max-width: 100%;
+    }
+
+    /* Markdown in bubbles */
+    .msg-bubble p { margin-bottom: 10px; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-bubble h1 { font-size: 1.35em; font-weight: 700; margin: 14px 0 6px; color: var(--ink); }
+    .msg-bubble h2 { font-size: 1.18em; font-weight: 600; margin: 12px 0 5px; color: var(--ink); }
+    .msg-bubble h3 { font-size: 1.04em; font-weight: 600; margin: 10px 0 4px; color: var(--ink); }
+    .msg-bubble strong { font-weight: 600; color: var(--ink); }
+    .msg-bubble em { font-style: italic; }
+    .msg-bubble ul, .msg-bubble ol { padding-left: 20px; margin: 6px 0; }
+    .msg-bubble li { margin-bottom: 4px; }
+    .msg-bubble blockquote { border-left: 3px solid var(--accent); padding-left: 12px; margin: 8px 0; color: var(--muted); font-style: italic; }
+    .msg-bubble a { color: var(--accent); text-decoration: underline; }
+    .msg-bubble hr { border: none; border-top: 1px solid var(--line); margin: 12px 0; }
+    .inline-code {
+      background: #eef0fb; border: 1px solid #dcdff0;
+      color: #3d3cad; padding: 2px 6px; border-radius: 5px;
+      font-family: 'Fira Code', Consolas, monospace; font-size: 0.87em;
+    }
+    .code-block { border-radius: 10px; overflow: hidden; margin: 12px 0; border: 1px solid #dde0ef; box-shadow: 0 2px 12px rgba(21,26,44,0.06); }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; background: #eef0fb; font-size: 12px; color: var(--muted); font-family: monospace; border-bottom: 1px solid #dde0ef; }
+    .code-copy-btn { font-size: 12px; color: var(--muted); padding: 3px 8px; border-radius: 5px; border: 1px solid #dde0ef; background: none; cursor: pointer; transition: all var(--ease); }
+    .code-copy-btn:hover { background: #fff; color: var(--accent); border-color: var(--accent); }
+    .code-block pre { margin: 0; overflow-x: auto; background: #f8f9fe; padding: 14px; }
+    .code-block pre code { font-family: 'Fira Code', Consolas, monospace; font-size: 13px; line-height: 1.6; background: none; padding: 0; }
+    .table-wrap { overflow-x: auto; margin: 10px 0; border-radius: 9px; border: 1px solid var(--line); }
+    .msg-bubble table { border-collapse: collapse; width: 100%; }
+    .msg-bubble th { background: #f0f2fb; font-weight: 600; }
+    .msg-bubble th, .msg-bubble td { border: 1px solid var(--line); padding: 8px 12px; font-size: 13.5px; text-align: left; }
+    .msg-bubble tr:nth-child(even) td { background: #f9f9fd; }
+
+    /* Typing dots */
+    .typing-dots { display: inline-flex; gap: 5px; padding: 10px 2px; align-items: center; }
+    .typing-dots span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #9098b4;
+      animation: dotBounce 1s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.16s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.32s; }
+    @keyframes dotBounce { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
+
+    .streaming-cursor::after {
+      content: ""; display: inline-block; width: 2px; height: 16px;
+      margin-left: 3px; border-radius: 1px; background: var(--accent);
+      vertical-align: text-bottom; animation: blink 0.65s steps(2) infinite;
+    }
+    @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+    /*  COMPOSER  */
+    .composer-area {
+      padding: 0 20px 16px;
+      background: linear-gradient(to top, var(--bg) 65%, rgba(247,247,250,0));
+      flex-shrink: 0;
+    }
+    .composer-box {
+      max-width: 820px; margin: 0 auto;
+      border: 1.5px solid #dce0ee; border-radius: 20px;
+      background: var(--soft);
+      box-shadow: 0 8px 30px rgba(21,26,44,0.09);
+      display: flex; align-items: flex-end; gap: 8px;
+      padding: 10px 10px 10px 14px;
+      transition: border-color var(--ease), box-shadow var(--ease);
+    }
+    .composer-box:focus-within {
+      border-color: rgba(93,90,216,0.5);
+      box-shadow: 0 0 0 4px rgba(93,90,216,0.07), 0 8px 30px rgba(21,26,44,0.09);
+    }
+    .plus-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid #dce0ee; background: var(--panel);
+      color: var(--muted); font-size: 18px; line-height: 1;
+      flex-shrink: 0; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 2px; transition: background var(--ease), color var(--ease);
+    }
+    .plus-btn:hover { background: #e6e8f5; color: var(--accent); }
+    .input-field {
+      flex: 1; border: 0; outline: none; resize: none;
+      font: inherit; font-size: 15px; line-height: 1.5;
+      min-height: 24px; max-height: 160px;
+      background: transparent; color: var(--ink); overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .input-field::placeholder { color: #9ba4bc; }
+    .send-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: 0;
+      background: linear-gradient(145deg, #6664ea, #4a48c8);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; margin-bottom: 1px;
+      box-shadow: 0 6px 18px rgba(93,90,216,0.3);
+      transition: transform var(--ease), box-shadow var(--ease);
+    }
+    .send-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(93,90,216,0.4); }
+    .send-btn:disabled { background: #d4d7e9; box-shadow: none; cursor: default; }
+    .send-btn svg { width: 15px; height: 15px; }
+    .composer-hint { max-width: 820px; margin: 6px auto 0; text-align: center; font-size: 11.5px; color: var(--muted); }
+    .composer-hint code { font-size: 11px; background: #eef0fb; padding: 1px 5px; border-radius: 4px; color: #5553cc; }
+
+    /* Mobile */
+    #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.38); z-index: 90; }
+    #sidebar-overlay.open { display: block; }
+    #mobile-header { display: none; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); flex-shrink: 0; background: var(--bg); }
+    #hamburger { padding: 6px; border-radius: 7px; color: var(--ink); display: flex; cursor: pointer; transition: background var(--ease); }
+    #hamburger:hover { background: var(--accent-soft); }
+
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: min(86vw, 280px);
+        transform: translateX(-100%);
+        transition: transform 0.28s ease; z-index: 100;
+      }
+      .sidebar.open { transform: translateX(0); }
+      #mobile-header { display: flex; }
+      .app { grid-template-rows: auto auto 1fr auto; }
+      .topbar { padding: 10px 14px 8px; }
+      .feed { padding: 8px 12px 12px; }
+      .composer-area { padding: 0 12px 14px; }
+      .welcome-wrap { min-height: 38vh; padding: 24px 12px 16px; }
+      .sug-grid { grid-template-columns: 1fr; max-width: 100%; }
+      .composer-hint { display: none; }
     }
   </style>
 </head>
 <body>
-<div id="app">
+<div class="shell">
 
-  <!-- ================================================================
-       SIDEBAR
-  ================================================================ -->
-  <aside id="sidebar">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
       <div class="logo">
         <div class="logo-icon">B</div>
         <span class="logo-name">BaobabGPT</span>
       </div>
-      <button id="new-chat-btn" aria-label="New chat">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
+      <button class="new-chat-btn" id="new-chat-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         New chat
       </button>
     </div>
 
-    <div id="sidebar-history"></div>
+    <nav class="sidebar-nav">
+      <button class="side-btn active">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chats
+      </button>
+    </nav>
+
+    <div class="sidebar-hist-wrap" id="hist-wrap">
+      <div class="hist-section-label">History</div>
+      <div class="sidebar-hist" id="sidebar-hist"></div>
+    </div>
 
     <div class="sidebar-bottom">
-      <div class="model-selector-wrap">
-        <button id="model-selector-btn" aria-label="Select model">
-          <span id="model-icon">&#x1F9E0;</span>
-          <span id="model-label">BaobabGPT Standard</span>
-          <svg class="model-caret" width="11" height="11" fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-        </button>
-        <div class="model-dropdown" id="model-dropdown"></div>
-      </div>
-      <hr />
-      <div class="user-profile" title="Account">
-        <div class="user-avatar">S</div>
-        <span class="user-name">Sean</span>
-        <button class="settings-btn" title="Settings" aria-label="Settings">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-        </button>
+      <div class="user-row">
+        <div class="user-av" id="user-av">S</div>
+        <span class="user-email" id="user-email-label">user</span>
       </div>
     </div>
   </aside>
 
-  <!-- Mobile backdrop -->
   <div id="sidebar-overlay"></div>
 
-  <!-- ================================================================
-       MAIN AREA
-  ================================================================ -->
-  <main id="main">
-    <!-- Mobile header -->
+  <!-- MAIN -->
+  <main class="app">
     <header id="mobile-header">
-      <button id="hamburger" aria-label="Open menu">
+      <button id="hamburger" aria-label="Menu">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <line x1="3" y1="6"  x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
       <div class="logo">
-        <div class="logo-icon" style="width:26px;height:26px;font-size:14px;border-radius:6px;">B</div>
+        <div class="logo-icon" style="width:26px;height:26px;font-size:14px;border-radius:7px;">B</div>
         <span class="logo-name">BaobabGPT</span>
       </div>
     </header>
 
-    <div id="omega-banner">BaobabGPT Omega is coming soon. Be the first to know when it launches.</div>
-
-    <!-- Chat scroll area -->
-    <div id="chat-scroll">
-      <div id="chat-inner"></div>
-    </div>
-
-    <!-- Input bar -->
-    <div id="input-area">
-      <div class="input-outer">
-        <div class="input-wrapper">
-          <button class="attach-btn" title="Attach file" aria-label="Attach file">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-            </svg>
+    <header class="topbar">
+      <div class="model-chip" id="model-chip">BaobabGPT 1.0</div>
+      <div class="topbar-right">
+        <div class="model-selector-wrap">
+          <button class="model-sel-btn" id="model-sel-btn" aria-label="Select model">
+            <span id="sel-icon">&#x1F9E0;</span>
+            <span id="sel-name">baobab gpti</span>
+            <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" style="opacity:0.6"><path d="M7 10l5 5 5-5z"/></svg>
           </button>
-          <textarea id="message-input" rows="1" placeholder="Message BaobabGPT" aria-label="Message input"></textarea>
-          <button id="send-btn" disabled aria-label="Send message">
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-            </svg>
+          <div class="model-dropdown" id="model-dropdown">
+            <div class="model-opt" data-model="baobab_gpti">
+              <span class="model-opt-icon">&#x1F9E0;</span>
+              <div class="model-opt-info">
+                <div class="model-opt-name">baobab gpti</div>
+                <div class="model-opt-desc">Local &middot; runs in browser</div>
+              </div>
+              <span class="model-opt-check" id="chk-baobab">&#10003;</span>
+            </div>
+            <div class="model-opt" data-model="aria">
+              <span class="model-opt-icon">&#x2728;</span>
+              <div class="model-opt-info">
+                <div class="model-opt-name">ARIA</div>
+                <div class="model-opt-desc">Live &middot; powered by Azure</div>
+              </div>
+              <span class="model-opt-check" id="chk-aria" style="display:none">&#10003;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="feed" class="feed">
+      <div id="welcome-state" class="welcome-wrap">
+        <div class="welcome-icon">B</div>
+        <h2 class="welcome-title">What can I help with?</h2>
+        <p class="welcome-sub">Africa&rsquo;s AI &mdash; always learning</p>
+        <div class="sug-grid">
+          <button class="sug-card" onclick="useSuggestion('What is the capital of Zimbabwe?')">
+            <span class="sug-icon">&#x1F1FF;&#x1F1FC;</span>About Zimbabwe
+          </button>
+          <button class="sug-card" onclick="useSuggestion('Tell me a fun fact')">
+            <span class="sug-icon">&#x1F4A1;</span>Random fun fact
+          </button>
+          <button class="sug-card" onclick="useSuggestion('What is artificial intelligence?')">
+            <span class="sug-icon">&#x1F916;</span>Explain AI
+          </button>
+          <button class="sug-card" onclick="useSuggestion('What is the largest country in Africa?')">
+            <span class="sug-icon">&#x1F5FA;&#xFE0F;</span>African geography
           </button>
         </div>
-        <p class="input-footer">BaobabGPT can make mistakes. Consider checking important information.</p>
       </div>
+      <div id="feed-inner" class="feed-inner"></div>
+    </section>
+
+    <div class="composer-area">
+      <form id="composer" class="composer-box" autocomplete="off">
+        <button class="plus-btn" type="button" aria-label="Options">+</button>
+        <textarea id="prompt" class="input-field" rows="1" placeholder="Message BaobabGPT&hellip;"></textarea>
+        <button id="send" class="send-btn" type="submit" disabled aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 11L12 6L17 11M12 6V18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+      <p class="composer-hint">Enter to send &middot; Shift+Enter for new line &middot; <code>/teach question =&gt; answer</code></p>
     </div>
   </main>
 </div>
-
 <script>
-/* ======================================================================
-   CONFIG — edit these to connect your real API or change app settings
-====================================================================== */
-const CONFIG = {
-  API_URL:      "https://mvumi.me/api/baobab/chat",
-  API_TOKEN:    "your_token_here",
-  USER_NAME:    "Sean",
-  USE_MOCK:     true,   // set false when real API is live
-  STREAM_CHUNK: 3,      // characters streamed per animation frame
-  STREAM_SPEED: 16,     // ms between frames (lower = faster typing effect)
+/*  Session guard  */
+const SESSION_KEY = "mvumi_session_v1";
+const sessionEmail = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+if (!sessionEmail) { window.location.replace("index.html"); throw new Error("no session"); }
+
+/*  User display  */
+const userAvEl  = document.getElementById("user-av");
+const userLblEl = document.getElementById("user-email-label");
+if (userAvEl)  userAvEl.textContent  = sessionEmail.charAt(0).toUpperCase();
+if (userLblEl) userLblEl.textContent = sessionEmail.split("@")[0] || "User";
+
+/*  Storage keys  */
+const KNOWLEDGE_KEY      = "stargen_mini_model_v1";
+const ARIA_FN_KEY        = "aria_function_key_v1";
+const ARIA_API_URL_KEY   = "aria_api_url_v1";
+const ARIA_API_DEFAULT   = "https://aria-mvumi.azurewebsites.net/api/aria-chat";
+const MODEL_MODE_KEY     = "stargen_model_mode_v1";
+const CHATS_HISTORY_KEY  = "baobab_chats_v1";
+const ACTIVE_CHAT_KEY    = "baobab_active_chat_v1";
+
+/*  Default knowledge  */
+const DEFAULT_KNOWLEDGE = [
+  {q:"What is the capital of Zimbabwe",a:"The capital and largest city of Zimbabwe is Harare, formerly known as Salisbury."},
+  {q:"What is the population of Zimbabwe",a:"Zimbabwe has a population of roughly 16.9 million people (2024 estimate). The 2022 census recorded 15,178,957."},
+  {q:"What languages are spoken in Zimbabwe",a:"Zimbabwe has 16 official languages. The most common are Shona (spoken by 78%), Ndebele (20%), and English, which is the main language in education and the judiciary."},
+  {q:"What is the currency of Zimbabwe",a:"Zimbabwe's de jure currency is the Zimbabwe Gold (ZWG). The de facto currency is the United States dollar (USD). The South African rand is also widely used."},
+  {q:"Who is the president of Zimbabwe",a:"The current president of Zimbabwe is Emmerson Mnangagwa, who came to power after a coup in November 2017 that ended Robert Mugabe's 37-year rule."},
+  {q:"When did Zimbabwe gain independence",a:"Zimbabwe gained independence on 18 April 1980, from the United Kingdom. It was formerly known as Southern Rhodesia and then Rhodesia."},
+  {q:"What does Zimbabwe mean",a:"The name 'Zimbabwe' comes from the Shona term 'dzimba-dza-mabwe', meaning 'houses of stones' or 'big house of stone', referring to the medieval city of Great Zimbabwe."},
+  {q:"What is Great Zimbabwe",a:"Great Zimbabwe is a medieval city in southeastern Zimbabwe (near Masvingo). It was a major African trade centre by the 13th century and is the origin of the country's name. Its ruins are a UNESCO World Heritage Site."},
+  {q:"What is the area of Zimbabwe",a:"Zimbabwe covers 390,757 km2 (150,872 sq mi), making it the 60th largest country in the world. It is a landlocked country."},
+  {q:"What countries border Zimbabwe",a:"Zimbabwe is bordered by South Africa to the south, Botswana to the southwest, Zambia to the north, and Mozambique to the east."},
+  {q:"What is the second largest city in Zimbabwe",a:"The second largest city in Zimbabwe is Bulawayo."},
+  {q:"What ethnic groups are in Zimbabwe",a:"The major ethnic groups are Shona (82%) and Ndebele (14%). Other groups include Venda, Tonga, Tsonga, Kalanga, Sotho, Ndau, and Nambya."},
+  {q:"What is the motto of Zimbabwe",a:"Zimbabwe's national motto is 'Unity, Freedom, Work'."},
+  {q:"What is the national anthem of Zimbabwe",a:"The national anthem of Zimbabwe is 'Blessed Be the Land of Zimbabwe' (also known as 'Simudzai Mureza wedu WeZimbabwe')."},
+  {q:"What is Victoria Falls",a:"Victoria Falls is one of the largest waterfalls in the world, located on the Zambezi River on the border between Zimbabwe and Zambia. It is a major tourist attraction and UNESCO World Heritage Site."},
+  {q:"What is the highest point in Zimbabwe",a:"The highest point in Zimbabwe is Mount Nyangani at 2,592 metres (8,504 ft), located in the Eastern Highlands."},
+  {q:"What religion is practiced in Zimbabwe",a:"84.1% of Zimbabweans are Christian (69.2% Protestant, 14.9% other Christian), 10.2% have no religion, 4.5% follow traditional faiths, and 1.2% follow other religions."},
+  {q:"What is Zimbabwe literacy rate",a:"Zimbabwe has the highest adult literacy rate in Africa, recorded at 90.7% in 2013. Education investment since independence has been significant."},
+  {q:"Who was the first president of Zimbabwe",a:"The first president of Zimbabwe after independence was Canaan Banana (a mainly ceremonial role). Robert Mugabe was the first Prime Minister and head of government."},
+  {q:"Who was Robert Mugabe",a:"Robert Mugabe was Zimbabwe's first Prime Minister (1980-1987) and then President (1987-2017). He ruled for 37 years until a military coup in November 2017 led to his resignation."},
+  {q:"What is the Chimurenga",a:"Chimurenga refers to revolutionary struggles in Zimbabwe. The First Chimurenga (1896-97) was against colonial rule. The Second Chimurenga (1964-1979) led to independence."},
+  {q:"What was Rhodesia",a:"Rhodesia was the name used for Zimbabwe during the colonial era. It was called Southern Rhodesia (1898-1964), then Rhodesia (1965-1979), before becoming Zimbabwe in 1980."},
+  {q:"What is Lake Kariba",a:"Lake Kariba is the world's largest reservoir by volume, on the Zambezi River between Zimbabwe and Zambia. It is a popular tourist destination."},
+  {q:"What are the provinces of Zimbabwe",a:"Zimbabwe has 8 provinces plus 2 cities with provincial status: Bulawayo, Harare, Manicaland, Mashonaland Central, Mashonaland East, Mashonaland West, Masvingo, Matabeleland North, Matabeleland South, and Midlands."},
+  {q:"What is the government type of Zimbabwe",a:"Zimbabwe is a unitary presidential republic. The president is both head of state and head of government."},
+  {q:"What is Hwange National Park",a:"Hwange National Park is the largest national park in Zimbabwe, known for its large elephant population and diverse wildlife including lions, leopards, and wild dogs."},
+  {q:"What happened in Zimbabwe in 2017",a:"In November 2017, the military led a coup d'etat following the dismissal of Vice-president Emmerson Mnangagwa. Robert Mugabe resigned after 37 years, and Mnangagwa became president."},
+  {q:"What is Zimbabwe hyperinflation",a:"Zimbabwe experienced extreme hyperinflation in the late 2000s, peaking in November 2008. The government printed a 100 trillion dollar banknote. The Zimbabwe dollar was suspended in April 2009."},
+  {q:"What sports are popular in Zimbabwe",a:"Football (soccer) is the most popular sport in Zimbabwe. Cricket also has a strong following  Zimbabwe has Test cricket status. Rugby is also played nationally."},
+  {q:"What is the GDP of Zimbabwe",a:"Zimbabwe's GDP (PPP) is approximately $93.9 billion (2025 estimate), and its GDP (nominal) is approximately $53.3 billion. The GDP per capita (PPP) is about $5,410."},
+  {q:"What is the time zone of Zimbabwe",a:"Zimbabwe is in the Central Africa Time (CAT) zone, which is UTC+2."},
+  {q:"What is the calling code for Zimbabwe",a:"The international calling code for Zimbabwe is +263."},
+  {q:"How many countries are in Africa",a:"Africa has 54 fully recognised sovereign states and 2 partially recognised states."},
+  {q:"How big is Africa",a:"Africa covers about 30.3 million km2 (11.7 million sq mi), which is about 20% of Earth's land area. It is the world's second-largest continent."},
+  {q:"What is the population of Africa",a:"Africa's population is approximately 1.4 billion people (2021), making it the second most populous continent after Asia."},
+  {q:"What is the largest country in Africa",a:"Algeria is the largest country in Africa by area (2,381,740 km2). Nigeria is the largest by population."},
+  {q:"What is the most populated country in Africa",a:"Nigeria is the most populated country in Africa, with over 200 million people."},
+  {q:"What are the largest cities in Africa",a:"The largest cities in Africa include Cairo (Egypt), Lagos (Nigeria), Kinshasa (DRC), Johannesburg (South Africa), and Luanda (Angola)."},
+  {q:"What languages are spoken in Africa",a:"Africa has between 1,250 and 3,000 native languages. The four major language families are Niger-Congo, Afroasiatic, Nilo-Saharan, and Khoisan. Colonial languages like English, French, Portuguese, and Arabic are also widely used."},
+  {q:"What religions are practiced in Africa",a:"Christianity is practiced by about 49% of Africans, Islam by about 42%, traditional African faiths by about 8%, and other religions make up the remaining 1%."},
+  {q:"What oceans surround Africa",a:"Africa is surrounded by the Mediterranean Sea to the north, the Indian Ocean to the southeast, and the Atlantic Ocean to the west. The Red Sea lies to the northeast."},
+  {q:"What is the African Union",a:"The African Union (AU) is a continental union of 55 member states, formed on 26 June 2001. Its headquarters is in Addis Ababa, Ethiopia."},
+  {q:"What is the capital of Nigeria",a:"The capital of Nigeria is Abuja. Lagos is the largest city."},
+  {q:"What is the capital of South Africa",a:"South Africa has three capitals: Pretoria (administrative), Cape Town (legislative), and Bloemfontein (judicial)."},
+  {q:"What is the capital of Egypt",a:"The capital of Egypt is Cairo, which is the largest city in Africa."},
+  {q:"What is the capital of Kenya",a:"The capital of Kenya is Nairobi."},
+  {q:"What is the capital of Ethiopia",a:"The capital of Ethiopia is Addis Ababa, which also serves as the headquarters of the African Union."},
+  {q:"What is the capital of Ghana",a:"The capital of Ghana is Accra."},
+  {q:"What is the capital of Tanzania",a:"The official capital of Tanzania is Dodoma, though Dar es Salaam is the largest city and economic hub."},
+  {q:"What is the capital of Morocco",a:"The capital of Morocco is Rabat. Casablanca is the largest city."},
+  {q:"What is the capital of Algeria",a:"The capital of Algeria is Algiers."},
+  {q:"What is the Sahara Desert",a:"The Sahara Desert is the largest hot desert in the world, covering much of North Africa. It spans about 9.2 million km2."},
+  {q:"What natural resources does Africa have",a:"Africa holds 90% of the world's cobalt, 90% of its platinum, 50% of its gold, 98% of its chromium, 70% of its tantalite, 64% of its manganese, and one-third of its uranium."},
+  {q:"Where did humans originate",a:"Humans originated in Africa. It is known as the 'Cradle of Humankind'. Fossil remains of early human ancestors have been found dating back millions of years."},
+  {q:"What is the Nile River",a:"The Nile is the longest river in the world (about 6,650 km), flowing through northeastern Africa. It passes through 11 countries and empties into the Mediterranean Sea."},
+  {q:"What is the capital of Zambia",a:"The capital of Zambia is Lusaka."},
+  {q:"What is the capital of Mozambique",a:"The capital of Mozambique is Maputo."},
+  {q:"What is the capital of Botswana",a:"The capital of Botswana is Gaborone."},
+  {q:"What is the capital of Uganda",a:"The capital of Uganda is Kampala."},
+  {q:"What is the capital of Rwanda",a:"The capital of Rwanda is Kigali."},
+  {q:"What is the capital of Namibia",a:"The capital of Namibia is Windhoek."},
+  {q:"What is the capital of DRC",a:"The capital of the Democratic Republic of the Congo is Kinshasa, one of Africa's largest cities."},
+  {q:"What is the capital of Angola",a:"The capital of Angola is Luanda."},
+  {q:"What is the capital of Cameroon",a:"The capital of Cameroon is Yaounde."},
+  {q:"What is the capital of Senegal",a:"The capital of Senegal is Dakar."},
+  {q:"What is the capital of Somalia",a:"The capital of Somalia is Mogadishu."},
+  {q:"What is the capital of Sudan",a:"The capital of Sudan is Khartoum."},
+  {q:"What is the capital of Libya",a:"The capital of Libya is Tripoli."},
+  {q:"What is the capital of Tunisia",a:"The capital of Tunisia is Tunis."},
+  {q:"What is Ancient Egypt",a:"Ancient Egypt was one of the world's earliest civilizations, based along the Nile River. Famous for its pyramids, pharaohs, hieroglyphics, and contributions to art, science, and architecture."},
+  {q:"What is the speed of light",a:"The speed of light in a vacuum is approximately 299,792,458 metres per second (about 300,000 km/s)."},
+  {q:"What is the largest planet in the solar system",a:"Jupiter is the largest planet in our solar system. It has a diameter of about 139,820 km and is a gas giant."},
+  {q:"What is the smallest planet in the solar system",a:"Mercury is the smallest planet in our solar system and the closest to the Sun."},
+  {q:"How many planets are in the solar system",a:"There are 8 planets in our solar system: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Pluto was reclassified as a dwarf planet in 2006."},
+  {q:"What is the largest ocean",a:"The Pacific Ocean is the largest and deepest ocean on Earth, covering about 165.25 million km2."},
+  {q:"What is water made of",a:"Water is made of two hydrogen atoms bonded to one oxygen atom. Its chemical formula is H2O."},
+  {q:"What is photosynthesis",a:"Photosynthesis is the process by which green plants convert sunlight, water, and carbon dioxide into glucose and oxygen. It is essential for life on Earth."},
+  {q:"What is gravity",a:"Gravity is a fundamental force of nature that attracts objects with mass toward each other. On Earth, its acceleration at the surface is about 9.8 m/s2."},
+  {q:"What is DNA",a:"DNA (deoxyribonucleic acid) is the molecule that carries the genetic instructions for life. It has a double-helix structure and contains the code for building and maintaining organisms."},
+  {q:"What is the Sun",a:"The Sun is a star at the centre of our solar system. It is about 4.6 billion years old, with a surface temperature of about 5,500 degrees Celsius."},
+  {q:"What is the Moon",a:"The Moon is Earth's only natural satellite. It orbits Earth at an average distance of about 384,400 km and influences Earth's tides."},
+  {q:"How old is the Earth",a:"The Earth is approximately 4.54 billion years old, based on radiometric age dating of meteorite material."},
+  {q:"What is climate change",a:"Climate change refers to long-term shifts in global temperatures and weather patterns. Since the industrial era, human activities  mainly burning fossil fuels  have been the main driver of global warming."},
+  {q:"What is the internet",a:"The Internet is a global network of interconnected computers that communicate using standardized protocols (TCP/IP). It enables email, the web, social media, streaming, and much more."},
+  {q:"Who invented the telephone",a:"Alexander Graham Bell is credited with inventing the first practical telephone in 1876."},
+  {q:"What is the periodic table",a:"The periodic table is a tabular arrangement of chemical elements, organized by atomic number, electron configuration, and chemical properties. First published by Dmitri Mendeleev in 1869."},
+  {q:"What is an atom",a:"An atom is the smallest unit of matter that retains the properties of a chemical element. It consists of a nucleus (protons and neutrons) surrounded by electrons."},
+  {q:"What is the largest country in the world",a:"Russia is the largest country in the world by area, covering about 17.1 million km2."},
+  {q:"What is the smallest country in the world",a:"Vatican City is the smallest country in the world, with an area of about 0.44 km2 (110 acres)."},
+  {q:"What is the most populated country in the world",a:"India is currently the most populated country in the world, having surpassed China in 2023, with over 1.4 billion people."},
+  {q:"How many continents are there",a:"There are 7 continents: Africa, Antarctica, Asia, Australia/Oceania, Europe, North America, and South America."},
+  {q:"What is the longest river in the world",a:"The Nile River in Africa is generally considered the longest river in the world at about 6,650 km."},
+  {q:"What is the highest mountain in the world",a:"Mount Everest is the highest mountain in the world, with a peak at 8,849 metres (29,032 ft) above sea level. It is located in the Himalayas on the border of Nepal and Tibet."},
+  {q:"What is pi",a:"Pi (pi) is a mathematical constant representing the ratio of a circle's circumference to its diameter. It is approximately 3.14159 and is an irrational number."},
+  {q:"What is the Pythagorean theorem",a:"The Pythagorean theorem states that in a right-angled triangle, the square of the hypotenuse equals the sum of the squares of the other two sides: a squared + b squared = c squared."},
+  {q:"What is a prime number",a:"A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself. Examples: 2, 3, 5, 7, 11, 13, 17."},
+  {q:"When did World War 1 start",a:"World War I started on 28 July 1914 and ended on 11 November 1918. It was triggered by the assassination of Archduke Franz Ferdinand of Austria."},
+  {q:"When did World War 2 start",a:"World War II started on 1 September 1939 when Germany invaded Poland. It ended in 1945, with Germany surrendering on 8 May and Japan on 15 August."},
+  {q:"Who was Nelson Mandela",a:"Nelson Mandela (1918-2013) was a South African anti-apartheid revolutionary who served as President of South Africa from 1994 to 1999. He spent 27 years in prison before his release in 1990."},
+  {q:"What is apartheid",a:"Apartheid was a system of institutionalised racial segregation in South Africa from 1948 to the early 1990s. It was dismantled through negotiations, leading to the first democratic elections in 1994."},
+  {q:"When was the United Nations founded",a:"The United Nations was founded on 24 October 1945. Its headquarters is in New York City and it currently has 193 member states."},
+  {q:"What is artificial intelligence",a:"Artificial intelligence (AI) refers to computer systems designed to perform tasks that typically require human intelligence, such as learning, reasoning, problem-solving, and understanding language."},
+  {q:"What is a computer",a:"A computer is an electronic device that processes data according to instructions (programs). Modern computers can perform billions of calculations per second."},
+  {q:"What is programming",a:"Programming is the process of writing instructions (code) that a computer can execute to perform specific tasks. Popular languages include Python, JavaScript, Java, C++, and many others."},
+  {q:"What is the World Wide Web",a:"The World Wide Web (WWW) was invented by Tim Berners-Lee in 1989. It is a system of interlinked hypertext documents accessed via the Internet using web browsers."},
+  {q:"What is Python",a:"Python is a high-level, interpreted language known for simple syntax and readability. Widely used in AI, data science, web development, and automation. Created by Guido van Rossum in 1991."},
+  {q:"What is JavaScript",a:"JavaScript is the programming language of the web, running in browsers to make pages interactive. Created in 1995 by Brendan Eich. With Node.js, it also runs on servers."},
+  {q:"What is HTML",a:"HTML (HyperText Markup Language) is the standard markup language for web pages. It defines structure and content using elements and tags like div, p, h1, etc."},
+  {q:"What is CSS",a:"CSS (Cascading Style Sheets) describes the visual styling of HTML documents  layout, colors, fonts, and responsive design."},
+  {q:"What is an algorithm",a:"An algorithm is a step-by-step procedure for solving a problem. It is fundamental to computer science, used in sorting, searching, encryption, and AI."},
+  {q:"What is a database",a:"A database is an organized collection of structured data. Common types include relational (SQL) and NoSQL databases. Popular systems: MySQL, PostgreSQL, MongoDB."},
+  {q:"What is machine learning",a:"Machine learning is a subset of AI where systems learn from data without being explicitly programmed. It uses algorithms to find patterns and make predictions."},
+  {q:"What is an operating system",a:"An operating system (OS) manages computer hardware and software resources. Examples: Windows, macOS, Linux, Android, iOS."},
+  {q:"What is cybersecurity",a:"Cybersecurity is protecting computer systems, networks, and data from digital attacks and unauthorized access. It includes encryption, firewalls, and security protocols."},
+  {q:"What is the largest animal in the world",a:"The blue whale is the largest animal ever known, growing up to 30 metres long and weighing up to 200 tonnes."},
+  {q:"What is the fastest land animal",a:"The cheetah is the fastest land animal, reaching speeds up to 112 km/h (70 mph) in short bursts."},
+  {q:"What is the tallest animal",a:"The giraffe is the tallest living animal, reaching heights up to 5.7 metres (18.7 ft)."},
+  {q:"What is evolution",a:"Evolution is the process by which species change over generations through natural selection, genetic drift, and mutation. Charles Darwin proposed the theory in 1859."},
+  {q:"What animals are found in Africa",a:"Africa has the world's largest diversity of megafauna, including elephants, lions, leopards, rhinos, buffalo (the Big Five), giraffes, zebras, hippos, cheetahs, and gorillas."},
+  {q:"What is the Serengeti",a:"The Serengeti is a vast ecosystem in East Africa (mostly in Tanzania), famous for its annual migration of over 1.5 million wildebeest and hundreds of thousands of zebras and gazelles."},
+  {q:"What is Mount Kilimanjaro",a:"Mount Kilimanjaro is the highest mountain in Africa at 5,895 metres (19,341 ft). It is a dormant volcano located in Tanzania near the Kenyan border."},
+  {q:"What is the capital of the United States",a:"The capital of the United States is Washington, D.C. New York City is the largest city."},
+  {q:"What is the capital of the United Kingdom",a:"The capital of the United Kingdom is London, with a population of about 9 million."},
+  {q:"What is the capital of France",a:"The capital of France is Paris, known as the 'City of Light', famous for the Eiffel Tower and the Louvre."},
+  {q:"What is the capital of Germany",a:"The capital of Germany is Berlin."},
+  {q:"What is the capital of China",a:"The capital of China is Beijing. China has about 1.4 billion people and is the world's second-largest economy."},
+  {q:"What is the capital of Japan",a:"The capital of Japan is Tokyo, the world's most populous metropolitan area with about 37 million people."},
+  {q:"What is the capital of India",a:"The capital of India is New Delhi. India is the world's most populous country with over 1.4 billion people."},
+  {q:"What is the capital of Brazil",a:"The capital of Brazil is Brasilia. Sao Paulo is the largest city. Brazil is the largest country in South America."},
+  {q:"What is the capital of Australia",a:"The capital of Australia is Canberra. Sydney and Melbourne are larger cities."},
+  {q:"What is the capital of Russia",a:"The capital of Russia is Moscow, the largest city in Europe. Russia is the largest country in the world by area."},
+  {q:"What is the capital of Canada",a:"The capital of Canada is Ottawa. Toronto is the largest city."},
+  {q:"Who was Julius Caesar",a:"Julius Caesar (100-44 BC) was a Roman military general who transformed the Roman Republic. He was assassinated on the Ides of March (15 March 44 BC)."},
+  {q:"What was the Renaissance",a:"The Renaissance (14th-17th century) was a European cultural movement reviving interest in classical art, literature, and learning. It began in Italy with masters like Leonardo da Vinci and Michelangelo."},
+  {q:"What was the Industrial Revolution",a:"The Industrial Revolution (1760s-1840s) was a shift from hand production to machine manufacturing. It began in Britain and transformed economies and societies worldwide."},
+  {q:"Who was Mahatma Gandhi",a:"Mahatma Gandhi (1869-1948) led India's independence movement through nonviolent civil disobedience. Called the 'Father of the Nation' in India."},
+  {q:"What was the Cold War",a:"The Cold War (1947-1991) was geopolitical tension between the US and Soviet Union involving an arms race, space race, and proxy wars but no direct military conflict."},
+  {q:"When did humans land on the Moon",a:"Humans first landed on the Moon on July 20, 1969 (Apollo 11). Neil Armstrong was the first person to walk on the Moon."},
+  {q:"Who was Albert Einstein",a:"Albert Einstein (1879-1955) was a theoretical physicist who developed the theory of relativity. His equation E equals mc squared is the world's most famous. He won the Nobel Prize in 1921."},
+  {q:"What is a black hole",a:"A black hole is a region where gravity is so strong nothing can escape, not even light. They form when massive stars collapse at end of life."},
+  {q:"What is the Big Bang",a:"The Big Bang theory says the universe began as an extremely hot, dense singularity about 13.8 billion years ago and has been expanding ever since."},
+  {q:"What is the Milky Way",a:"The Milky Way is our home galaxy, a barred spiral containing 100-400 billion stars. Our solar system is about 26,000 light-years from the galactic center."},
+  {q:"Who wrote Romeo and Juliet",a:"Romeo and Juliet was written by William Shakespeare around 1595. It is a tragedy about two young lovers from feuding families in Verona, Italy."},
+  {q:"Who painted the Mona Lisa",a:"The Mona Lisa was painted by Leonardo da Vinci, begun around 1503. It hangs in the Louvre Museum in Paris."},
+  {q:"Who wrote Things Fall Apart",a:"Things Fall Apart was written by Nigerian author Chinua Achebe in 1958. It is one of the most widely read works of modern African literature."},
+  {q:"Who was Isaac Newton",a:"Sir Isaac Newton (1643-1727) formulated the laws of motion and universal gravitation, made breakthroughs in optics, and co-invented calculus."},
+  {q:"Who was Marie Curie",a:"Marie Curie (1867-1934) pioneered research on radioactivity. She was the first woman to win a Nobel Prize and the only person to win Nobels in two different sciences."},
+  {q:"Who was Charles Darwin",a:"Charles Darwin (1809-1882) proposed evolution by natural selection in 'On the Origin of Species' (1859), one of the most influential scientific ideas ever."},
+  {q:"What is GDP",a:"GDP (Gross Domestic Product) is the total value of goods and services produced in a country. It is the primary measure of economic size and health."},
+  {q:"What is inflation",a:"Inflation is the general increase in prices over time. Central banks typically target around 2% annual inflation."},
+  {q:"What is democracy",a:"Democracy is government where citizens exercise power by voting, either directly on laws or by electing representatives. Modern democracy traces to ancient Athens."},
+  {q:"What is the most spoken language in the world",a:"Mandarin Chinese has the most native speakers (~920 million). English is the most widely spoken overall (~1.5 billion including non-native speakers)."},
+  {q:"What is COVID-19",a:"COVID-19 is caused by the SARS-CoV-2 virus, first identified in Wuhan, China in December 2019. The WHO declared it a global pandemic in March 2020."},
+  {q:"What are antibiotics",a:"Antibiotics fight bacterial infections. Penicillin, discovered by Alexander Fleming in 1928, was the first widely used antibiotic."},
+  {q:"What is algebra",a:"Algebra is a branch of mathematics using letters and symbols to represent numbers in formulas and equations. Essential for advanced math and science."},
+  {q:"What is calculus",a:"Calculus deals with rates of change (differential) and accumulation (integral). Developed by Newton and Leibniz in the 17th century."},
+  {q:"What are the Olympic Games",a:"The Olympics are the world's leading international athletic competition, held every four years. The modern Olympics began in Athens in 1896."},
+  {q:"What is the FIFA World Cup",a:"The FIFA World Cup is the biggest international football tournament, held every four years. Brazil has won the most titles (5)."},
+  {q:"What is cryptocurrency",a:"Cryptocurrency is digital currency using cryptography and blockchain technology. Bitcoin, created in 2009, was the first."},
+  {q:"What is global warming",a:"Global warming is the long-term increase in Earth's average temperature, primarily caused by burning fossil fuels and deforestation releasing greenhouse gases."},
+  {q:"What is renewable energy",a:"Renewable energy comes from naturally replenishing sources: solar, wind, hydropower, tidal, and geothermal. It produces little to no greenhouse gas emissions."},
+  {q:"What is the Zambezi River",a:"The Zambezi is the fourth-longest river in Africa at about 2,574 km. It flows through six countries and features Victoria Falls and Lake Kariba."},
+  {q:"Who was Cecil Rhodes",a:"Cecil Rhodes (1853-1902) was a British mining magnate and politician who founded the British South Africa Company, which colonised the territory that became Rhodesia (now Zimbabwe and Zambia)."},
+  {q:"What is the Matobo Hills",a:"The Matobo Hills (or Matopos) are a range of granite kopjes south of Bulawayo, Zimbabwe. They are a UNESCO World Heritage Site, known for San rock art and burial place of Cecil Rhodes."},
+  {q:"What is the Great Rift Valley",a:"The Great Rift Valley is a continuous geographic trench running from Lebanon to Mozambique, about 6,000 km long. In Africa, it runs through Ethiopia, Kenya, Tanzania, and other countries."},
+  {q:"What is the solar system",a:"The Solar System is the gravitationally bound system of the Sun and the objects that orbit it. It formed about 4.6 billion years ago. The Sun contains 99.86% of the system's mass."},
+  {q:"What is Mars",a:"Mars is the fourth planet from the Sun, called the Red Planet due to iron oxide on its surface. It has the largest volcano (Olympus Mons) and canyon (Valles Marineris) in the solar system."},
+  {q:"What is Jupiter",a:"Jupiter is the largest planet with a diameter of ~139,820 km. It is a gas giant with at least 95 moons, including the four large Galilean moons: Io, Europa, Ganymede, and Callisto."},
+  {q:"What is Saturn",a:"Saturn is the second-largest planet, famous for its spectacular ring system of ice and rock. It has at least 274 known moons including Titan."},
+  {q:"How many bones are in the human body",a:"An adult human has 206 bones. Babies are born with about 270 bones, many of which fuse together during growth."},
+  {q:"What is the largest organ in the human body",a:"The skin is the largest organ, covering about 1.5-2 square metres and weighing about 3.6 kg in adults."},
+  {q:"What is the brain",a:"The brain controls the nervous system and contains about 86 billion neurons. It uses 20% of the body's energy despite being only 2% of body weight."},
+  {q:"What is blood made of",a:"Blood contains red blood cells (carry oxygen), white blood cells (fight infection), platelets (help clotting), and plasma (liquid carrying nutrients and waste)."},
+  {q:"What is the Fibonacci sequence",a:"The Fibonacci sequence: each number is the sum of the two before it  0, 1, 1, 2, 3, 5, 8, 13, 21, 34... It appears frequently in nature."},
+  {q:"What was the Kingdom of Mutapa",a:"The Kingdom of Mutapa (c. 1450-1760) was a Shona kingdom stretching across parts of modern Zimbabwe and Mozambique. It was known for gold trade and succeeded the Great Zimbabwe civilization."}
+];
+
+/*  NLP: Stop words  */
+const STOP_WORDS = new Set(["the","a","an","is","are","was","were","be","been","being","have","has","had","do","does","did","will","would","shall","should","may","might","must","can","could","of","in","to","for","with","on","at","by","from","as","into","through","during","before","after","above","below","between","out","about","that","this","these","those","it","its","what","which","who","whom","where","when","why","how","not","no","nor","and","but","or","so","if","then","than","too","very","just","because","i","me","my","we","our","you","your","he","she","they","them","their","up","down","some","any","all","each","every","both","few","more","most","other","such","only","own","same","also"]);
+
+const SYNONYM_GROUPS = [
+  ["big","large","biggest","largest","huge","enormous","giant","massive"],
+  ["small","little","smallest","tiny","minute","miniature"],
+  ["country","nation","state","land","territory"],
+  ["capital","capital city","main city"],
+  ["fast","quick","rapid","speedy","swift"],
+  ["old","ancient","aged","historic"],
+  ["new","modern","recent","latest","current","contemporary"],
+  ["leader","ruler","chief","head","president","king","queen"],
+  ["war","conflict","battle","fight","combat"],
+  ["money","currency","cash","funds","finance"],
+  ["river","waterway","stream"],
+  ["mountain","peak","summit","mount"],
+  ["ocean","sea"],
+  ["animal","creature","beast","organism"],
+  ["disease","illness","sickness","ailment","condition"],
+  ["language","tongue","dialect"],
+  ["planet","world","celestial body"],
+  ["invented","created","developed","discovered","made"],
+  ["population","people","inhabitants","residents","citizens"],
+  ["dead","died","killed","death","passed away"],
+  ["beautiful","pretty","gorgeous","stunning","attractive"],
+  ["tall","high","towering","elevated"],
+  ["deep","profound","bottomless"]
+];
+const SYNONYM_MAP = {};
+SYNONYM_GROUPS.forEach(g => g.forEach(w => { SYNONYM_MAP[w] = g; }));
+
+/*  App state  */
+const state = {
+  messages: [],
+  thinking: false,
+  knowledge: [],
+  context: [],
+  idf: {},
+  chats: [],
+  activeChatId: null,
 };
 
-/* ======================================================================
-   MODELS — add or remove models here
-====================================================================== */
-const MODELS = [
-  { id: "flash",    icon: "⚡", name: "BaobabGPT Flash",    desc: "Fast & efficient"    },
-  { id: "standard", icon: "🧠", name: "BaobabGPT Standard", desc: "Best for most tasks" },
-  { id: "pro",      icon: "🔬", name: "BaobabGPT Pro",      desc: "Advanced reasoning"  },
-  { id: "research", icon: "🌐", name: "BaobabGPT Research", desc: "Web search + sources" },
-  { id: "omega",    icon: "✨", name: "BaobabGPT Omega",    desc: "Most powerful model. Coming soon.", comingSoon: true },
-];
+let modelMode = "aria";
 
-/* ======================================================================
-   SUGGESTION CARDS (empty state)
-====================================================================== */
-const SUGGESTIONS = [
-  { icon: "🌍", text: "What is happening in Zimbabwe today?" },
-  { icon: "💡", text: "Explain machine learning simply"       },
-  { icon: "📈", text: "Help me write a business plan"         },
-  { icon: "🔭", text: "Research the latest AI news"           },
-];
+/*  NLP utils  */
+function normalize(t) {
+  return String(t || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
 
-/* ======================================================================
-   MOCK RESPONSES — rotated while USE_MOCK is true
-====================================================================== */
-const MOCK = [
-  "Hello! I'm **BaobabGPT** — Africa's AI, rooted in context and always learning.\n\nHere's what I can help with:\n- 🌍 **African news & analysis** — stay informed across the continent\n- 💼 **Business strategy** — from idea to execution\n- 🧑‍💻 **Technical help** — code, debug, explain anything\n- 🔬 **Deep research** — enable Research mode for sourced, verified answers\n\nWhat would you like to explore today?",
+function stem(w) {
+  if (w.length < 4) return w;
+  return w
+    .replace(/ying$/, "y").replace(/ies$/, "y")
+    .replace(/ving$/, "ve").replace(/ting$/, "te").replace(/ning$/, "n")
+    .replace(/ring$/, "r").replace(/ling$/, "le").replace(/ding$/, "de")
+    .replace(/ping$/, "p").replace(/ging$/, "ge").replace(/bing$/, "b")
+    .replace(/ming$/, "m").replace(/zing$/, "ze")
+    .replace(/ating$/, "ate").replace(/ution$/, "ute")
+    .replace(/tion$/, "t").replace(/sion$/, "s")
+    .replace(/ness$/, "").replace(/ment$/, "")
+    .replace(/ful$/, "").replace(/less$/, "")
+    .replace(/ous$/, "").replace(/ive$/, "")
+    .replace(/ing$/, "").replace(/ed$/, "")
+    .replace(/ly$/, "").replace(/er$/, "").replace(/est$/, "")
+    .replace(/s$/, "");
+}
 
-  "Great question! Here's a clear breakdown:\n\n**Machine learning** is when computers learn patterns from data rather than following hand-written rules.\n\n### A simple analogy\nImagine teaching a child to recognise a cat:\n1. You show them 1,000 labelled photos — 'cat' or 'not cat'\n2. They notice patterns: whiskers, pointy ears, fur\n3. Now they can identify cats they've never seen before\n\nMachine learning works the same way — using maths.\n\n### Types of machine learning\n| Type | How it learns | Example |\n|------|---------------|---------|\n| Supervised | Labelled examples | Spam filter |\n| Unsupervised | Finds patterns alone | Customer grouping |\n| Reinforcement | Trial and error | Game AI |\n\nWould you like me to go deeper into any of these?",
+function tokenize(text) { return normalize(text).split(" ").filter(Boolean); }
 
-  "Here's a solid business plan framework:\n\n## 1. Executive Summary\nWrite this last — a 2–3 paragraph overview of everything.\n\n## 2. Problem and Solution\n- **The problem**: What specific gap exists in the market?\n- **Your solution**: How do you solve it uniquely?\n\n## 3. Market Analysis\nSize your market. Know your target customer deeply.\n\n## 4. Revenue Model\nSubscriptions? Transactions? Licensing? Advertising?\n\n## 5. Go-to-Market Strategy\nHow do you reach your first 100 customers?\n\n## 6. Financial Projections\nRevenue forecast, costs, and break-even timeline.\n\n## 7. Team\nWho builds and runs this — and why are they the right people?\n\nWant me to develop any section in depth?",
+function buildIDF() {
+  const df = {};
+  const N = state.knowledge.length || 1;
+  state.knowledge.forEach(item => {
+    const seen = new Set(tokenize(item.q).map(stem));
+    seen.forEach(t => { df[t] = (df[t] || 0) + 1; });
+  });
+  state.idf = {};
+  Object.keys(df).forEach(t => { state.idf[t] = Math.log((N + 1) / (df[t] + 1)) + 1; });
+}
 
-  "Here are the biggest AI developments right now:\n\n**1. Multimodal AI is now standard**\nLeading models seamlessly handle text, images, audio, code and video in a single system.\n\n**2. Agentic AI enters the mainstream**\nAI systems that autonomously browse the web, write and run code, and complete multi-step tasks are already widely deployed.\n\n**3. Africa's AI moment has arrived**\nAfrican AI startups raised over $2.1B in 2025. Nigeria, Kenya, South Africa and Zimbabwe are leading innovation hubs with strong government backing.\n\n**4. Open-source closes the gap**\nOpen-weight models now match commercial models on many benchmarks, democratising access across the continent.\n\n**5. Regulation is maturing**\nThe EU AI Act is fully enforced. Several African nations — including Rwanda and South Africa — have passed AI governance frameworks.\n\nWould you like a deeper dive into any of these trends?",
+function expandTokens(tokens) {
+  const expanded = new Set();
+  tokens.forEach(t => {
+    const st = stem(t);
+    expanded.add(st); expanded.add(t);
+    const syns = SYNONYM_MAP[t] || SYNONYM_MAP[st];
+    if (syns) syns.forEach(s => { expanded.add(s); expanded.add(stem(s)); });
+  });
+  return expanded;
+}
 
-  "Here's a current overview of Zimbabwe:\n\n**Economy**\n- The ZiG (Zimbabwe Gold) currency continues its stabilisation programme\n- Lithium mining is attracting significant investment from international partners\n- Agriculture output outlook is positive following good rains this season\n\n**Technology**\n- Harare's tech ecosystem is growing — fintech and mobile money dominate\n- Zimbabwean developers are increasingly contributing to open-source AI projects\n\n**Regional dynamics**\n- SADC engagement on political and economic dialogue continues\n- Tourism recovery is accelerating, with Victoria Falls seeing strong bookings\n\n> Zimbabwe hosts one of Africa's fastest-growing startup communities, with BaobabGPT among the homegrown AI tools serving the region.\n\nWould you like more detail on any area?",
-];
+function smartScore(inputTokens, questionTokens) {
+  const iTokens = expandTokens(inputTokens);
+  const qTokens = expandTokens(questionTokens);
+  if (!iTokens.size || !qTokens.size) return 0;
+  let matchWeight = 0, totalWeight = 0;
+  iTokens.forEach(t => {
+    if (STOP_WORDS.has(t)) return;
+    const w = state.idf[stem(t)] || 1;
+    totalWeight += w;
+    if (qTokens.has(t) || qTokens.has(stem(t))) matchWeight += w;
+  });
+  qTokens.forEach(t => {
+    if (STOP_WORDS.has(t)) return;
+    const w = state.idf[stem(t)] || 1;
+    totalWeight += w;
+    if (iTokens.has(t) || iTokens.has(stem(t))) matchWeight += w;
+  });
+  return totalWeight > 0 ? matchWeight / totalWeight : 0;
+}
 
-/* ======================================================================
-   APPLICATION STATE
-====================================================================== */
-let state = {
-  chats:         [],        // { id, title, messages[], createdAt, model }
-  activeChatId:  null,
-  currentModel:  "standard",
-  isGenerating:  false,
-  mockIdx:       0,
-};
+function bestLearnedAnswer(input) {
+  const ni = normalize(input);
+  if (!ni) return null;
+  let searchInput = input;
+  const contentWords = tokenize(input).filter(t => !STOP_WORDS.has(t));
+  if (state.context.length > 0 && contentWords.length <= 3) {
+    const last = state.context[state.context.length - 1];
+    if (/\b(it|that|this|they|them|there|its|more|also|else|about|and|too)\b/i.test(ni) || contentWords.length <= 2) {
+      searchInput = last.user + " " + input;
+    }
+  }
+  const inputTokens = tokenize(searchInput);
+  let best = null, bestS = 0;
+  state.knowledge.forEach(item => {
+    const qTokens = tokenize(item.q);
+    if (!qTokens.length) return;
+    const exact = ni === normalize(item.q) ? 1 : 0;
+    const s = Math.max(exact, smartScore(inputTokens, qTokens));
+    if (s > bestS) { bestS = s; best = item; }
+  });
+  if (!best) return null;
+  if (bestS >= 0.5)  return best.a;
+  if (bestS >= 0.35) return "I think: " + best.a;
+  if (bestS >= 0.25) return "I'm not entirely sure, but: " + best.a;
+  return null;
+}
 
-/* ======================================================================
-   UTILITIES
-====================================================================== */
-const genId     = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
-const sleep     = ms => new Promise(r => setTimeout(r, ms));
-const trunc     = (s, n = 38) => s.length > n ? s.slice(0, n) + '…' : s;
-const esc       = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const $         = id => document.getElementById(id);
-const scrollBot = () => { const e = $('chat-scroll'); if (e) e.scrollTop = e.scrollHeight; };
+/*  Knowledge store  */
+function loadKnowledge() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KNOWLEDGE_KEY) || "[]");
+    const user = Array.isArray(d) ? d.filter(i => i && i.q && i.a).slice(0, 1200) : [];
+    const seen = new Set(user.map(i => normalize(i.q)));
+    const merged = [...user];
+    DEFAULT_KNOWLEDGE.forEach(item => { if (!seen.has(normalize(item.q))) merged.push(item); });
+    return merged.slice(0, 1200);
+  } catch { return [...DEFAULT_KNOWLEDGE]; }
+}
+function saveKnowledge() { localStorage.setItem(KNOWLEDGE_KEY, JSON.stringify(state.knowledge.slice(0, 1200))); }
 
-/* ======================================================================
-   MARKDOWN RENDERER
-   Supports: fenced code blocks, inline code, tables, headings,
-             bold/italic, ul/ol lists, blockquotes, links, hr
-====================================================================== */
+/*  Command handlers  */
+function handleTeachCommand(input) {
+  const m = input.match(/^\s*\/teach\s+(.+?)\s*=>\s*(.+)\s*$/i);
+  if (!m) return null;
+  const q = m[1].trim(), a = m[2].trim();
+  if (!q || !a) return "Use: /teach question => answer";
+  const nq = normalize(q);
+  const ex = state.knowledge.find(i => normalize(i.q) === nq);
+  if (ex) ex.a = a; else state.knowledge.unshift({ q, a });
+  saveKnowledge();
+  buildIDF();
+  return 'Learned: "' + q + '"';
+}
+
+function handleForgetCommand(input) {
+  const m = input.match(/^\s*\/forget\s+(.+)\s*$/i);
+  if (!m) return null;
+  const q = m[1].trim(), nq = normalize(q), len = state.knowledge.length;
+  state.knowledge = state.knowledge.filter(i => normalize(i.q) !== nq);
+  saveKnowledge();
+  return state.knowledge.length < len ? 'Forgot: "' + q + '"' : "Not found. Try /list";
+}
+
+function handleListCommand(input) {
+  if (!/^\s*\/list\s*$/i.test(input)) return null;
+  if (!state.knowledge.length) return "Nothing learned yet. Use /teach question => answer";
+  return "Learned:\n" + state.knowledge.slice(0, 15).map((v, i) => (i + 1) + ". " + v.q).join("\n");
+}
+
+/*  Math solver  */
+function solveBasicMath(input) {
+  const raw = String(input || "").trim().toLowerCase();
+  if (!raw) return null;
+  let expr = raw
+    .replace(/^[^0-9\-+*/().]*?(what is|what's|calculate|compute|solve)\s*/i, "")
+    .replace(/\?/g, "").replace(/\s+/g, " ")
+    .replace(/\bplus\b/g, "+").replace(/\bminus\b/g, "-")
+    .replace(/\btimes\b/g, "*").replace(/\bmultiplied by\b/g, "*")
+    .replace(/\bdivided by\b/g, "/").replace(/\bover\b/g, "/")
+    .replace(/\bto the power of\b/g, "^").trim();
+  if (!expr) return null;
+  expr = expr.replace(/\^/g, "**").replace(/\s+/g, "");
+  if (!/^[0-9+\-*/().]*$/.test(expr)) return null;
+  if (!/[0-9]/.test(expr)) return null;
+  try {
+    const fn = Function("return (" + expr + ")");
+    const val = fn();
+    if (!Number.isFinite(val)) return "That math expression is undefined.";
+    return Math.abs(val - Math.round(val)) < 1e-10 ? String(Math.round(val)) : String(Number(val.toFixed(10)).toString());
+  } catch { return null; }
+}
+
+/*  Main reply logic  */
+function getReply(input) {
+  let r;
+  if ((r = handleTeachCommand(input)))  return r;
+  if ((r = handleForgetCommand(input))) return r;
+  if ((r = handleListCommand(input)))   return r;
+  const math = solveBasicMath(input);
+  if (math !== null) return math;
+
+  /* Correction */
+  const corrMatch = input.match(/^(?:actually|no,?\s*(?:it(?:'s| is)|the answer is))\s+(.+)/i);
+  if (corrMatch && state.context.length > 0) {
+    const lastQ = state.context[state.context.length - 1].user;
+    const correctedA = corrMatch[1].trim();
+    if (lastQ && correctedA) {
+      const nq = normalize(lastQ);
+      const ex = state.knowledge.find(i => normalize(i.q) === nq);
+      if (ex) ex.a = correctedA; else state.knowledge.unshift({q: lastQ, a: correctedA});
+      saveKnowledge(); buildIDF();
+      return 'Thanks for the correction! I\'ve updated my knowledge about "' + lastQ + '".';
+    }
+  }
+
+  const n = normalize(input);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  if (/\b(hi|hello|hey|greetings|good morning|good afternoon|good evening|sup|yo)\b/.test(n))
+    return pick(["Hey there! How's it going?", "Hello! What's on your mind?", "Hi! I'm here  ask me anything or just chat.", "Hey! Good to see you. What would you like to talk about?"]);
+
+  if (/\b(how are you|how('| a)re you doing|how('| i)s it going|how do you feel|are you okay|you good)\b/.test(n))
+    return pick(["I'm doing great, thanks for asking! How about you?", "All good on my end! What about you?", "Doing fine, thanks! What's up with you?"]);
+
+  if (/\b(i'?m (good|fine|great|okay|ok|well|alright|fantastic|awesome|not bad|doing well))\b/.test(n) || /^(good|fine|great|ok|okay|not bad|alright|pretty good)$/i.test(n.trim()))
+    return pick(["Glad to hear it! What can I help you with?", "That's great! Feel free to ask me anything.", "Awesome! I'm here if you need anything."]);
+
+  if (/\b(i'?m (sad|tired|bored|sick|angry|upset|stressed|down|depressed|lonely|not good|not okay))\b/.test(n) || /\b(i feel (sad|bad|down|tired|sick|bored|stressed|lonely|awful))\b/.test(n))
+    return pick(["I'm sorry to hear that. I hope things get better soon!", "That's tough. I'm here if you want to talk or a fun fact might cheer you up!", "I hope you feel better soon. Want me to share something interesting?"]);
+
+  if (/\b(what'?s up|whats up|wassup|what'?s new|what'?s happening)\b/.test(n))
+    return pick(["Not much  just here ready to chat! What's up with you?", "All quiet here! What's going on with you?", "Just hanging out, waiting for a good question!"]);
+
+  if (/\b(who are you|what are you|your name|tell me about yourself|introduce yourself)\b/.test(n))
+    return "I'm BaobabGPT  Africa's AI that runs right in your browser. I know about Zimbabwe, Africa, science, history, programming, and much more. You can even teach me new things with /teach.";
+
+  if (/\b(how do you work|how were you made|how were you built|what technology)\b/.test(n))
+    return "I'm built with JavaScript and run entirely in your browser  no servers needed! I use TF-IDF scoring, synonym expansion, and word stemming to understand your questions. You can teach me new things with /teach.";
+
+  if (/\b(are you (a |an )?(real|human|person|robot|bot|ai|machine|artificial))\b/.test(n) || /\b(are you alive)\b/.test(n))
+    return pick(["I'm an AI  a mini model running in your browser! Not human, but I try my best.", "I'm a chatbot, not a real person. But I'm here to help and chat!", "Nope, I'm artificial intelligence. But I like to think I'm good company!"]);
+
+  if (/\b(tell me a joke|say something funny|make me laugh|joke|funny)\b/.test(n))
+    return pick(["Why do programmers prefer dark mode? Because light attracts bugs!", "Why did the computer go to the doctor? Because it had a virus!", "What do you call a fake noodle? An impasta!", "Why don't scientists trust atoms? Because they make up everything!", "I told my computer I needed a break. Now it won't stop sending me Kit-Kat ads."]);
+
+  if (/\b(tell me a fact|random fact|fun fact|interesting fact|did you know|something interesting)\b/.test(n)) {
+    const facts = ["Honey never spoils  archaeologists found 3,000-year-old honey in Egyptian tombs still perfectly edible!", "Octopuses have three hearts and blue blood.", "A group of flamingos is called a 'flamboyance'.", "Bananas are berries, but strawberries aren't!", "The Eiffel Tower can grow up to 15 cm taller in the summer heat.", "There are more stars in the universe than grains of sand on Earth.", "Sharks have been around longer than trees  about 400 million years.", "A day on Venus is longer than a year on Venus.", "Cleopatra lived closer in time to the Moon landing than to the construction of the Great Pyramid."];
+    return pick(facts);
+  }
+
+  if (/\b(thank|thanks|cheers|appreciate)\b/.test(n))
+    return pick(["You're welcome!", "No problem! Happy to help.", "Anytime!", "Glad I could help!"]);
+
+  if (/\b(bye|goodbye|see you|later|gotta go|i'?m leaving|good night|goodnight)\b/.test(n))
+    return pick(["Goodbye! Come back anytime.", "See you later! It was nice chatting.", "Take care! I'll be here when you need me.", "Bye! Have a great day!"]);
+
+  if (/^(help|commands|\?)\s*$/i.test(n) || /\bhelp me\b/.test(n))
+    return "Here's what I can do:\n\u2022 Ask me questions on any topic\n\u2022 /teach question => answer  teach me new things\n\u2022 /forget question  remove knowledge\n\u2022 /list  see what I've learned\n\nI know about Zimbabwe, Africa, science, history, geography, programming, animals, and much more.\n\nTip: If I get something wrong, say \"actually [correct answer]\" and I'll learn!";
+
+  if (/\b(you('| a)re (smart|clever|cool|awesome|amazing|great|good|brilliant|helpful|nice|the best))\b/.test(n))
+    return pick(["Aw, thank you! That really means a lot!", "Thanks! I try my best!", "You're too kind! I'm just doing my thing."]);
+
+  if (/\b(you('| a)re (stupid|dumb|bad|useless|terrible|awful|wrong|annoying))\b/.test(n) || /\b(i hate you|you suck)\b/.test(n))
+    return pick(["I'm sorry I disappointed you. I'm always trying to improve  you can teach me things with /teach!", "Ouch! I know I'm not perfect, but I'm learning. Help me get better with /teach."]);
+
+  if (/^(yes|yeah|yep|yup|sure|absolutely|definitely|of course|right|correct|exactly)$/i.test(n.trim()))
+    return pick(["Great! What else would you like to talk about?", "Alright! Anything else on your mind?", "Cool! What's next?"]);
+
+  if (/^(no|nope|nah|not really|wrong|false)$/i.test(n.trim()))
+    return pick(["No worries! What would you like to talk about instead?", "That's fair. What else is on your mind?", "Okay! Feel free to ask me something else."]);
+
+  if (/\b(what time|what('| i)s the time|current time)\b/.test(n))
+    return "It's " + new Date().toLocaleTimeString() + " right now.";
+
+  if (/\b(what('| i)s today|today('| i)s date|what date|current date|what day)\b/.test(n))
+    return "Today is " + new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'}) + ".";
+
+  if (/\b(meaning of life|why (are|do) we (exist|live|here)|purpose of life)\b/.test(n))
+    return pick(["That's one of the biggest questions ever asked! Philosophers, scientists, and thinkers all have different answers. What do you think?", "42! At least that's what Douglas Adams said. But seriously, it's a beautiful open question.", "Great question. Some say it's about happiness, others about purpose or connection. What's your take?"]);
+
+  if (/\b(i'?m bored|nothing to do|entertain me)\b/.test(n))
+    return pick(["Let me fix that! Did you know: honey never spoils?", "Want a joke? Or ask me anything  I know hundreds of topics!", "Try asking me 'tell me a fun fact' or 'tell me a joke'!"]);
+
+  if (/\b(what can you do|what do you know|what can i ask|your capabilities)\b/.test(n))
+    return "I know about lots of topics: Zimbabwe, Africa, science, space, the human body, programming, animals, world capitals, history, and more! I have hundreds of built-in answers and you can teach me even more. Just ask!";
+
+  if ((r = bestLearnedAnswer(input))) return r;
+
+  const fallbacks = [
+    "Hmm, I don't have an answer for that yet. Want to teach me? Use: /teach your question => your answer",
+    "That's a good question! I haven't learned about that yet. You can teach me with /teach.",
+    "I'm not sure about that one. I'm still learning! You can help me grow by using /teach question => answer.",
+    "I don't know that yet, but I'd love to learn! Try: /teach " + input + " => your answer",
+    "That's beyond what I know right now. But you can teach me! Just use /teach to add new knowledge."
+  ];
+  return pick(fallbacks);
+}
+
+/*  ARIA backend  */
+function parseApiCandidates(v) { return String(v || "").split(",").map(v => v.trim()).filter(Boolean); }
+function getApiCandidates() {
+  const saved = parseApiCandidates(localStorage.getItem(ARIA_API_URL_KEY) || "");
+  return [...new Set([...saved, ARIA_API_DEFAULT])];
+}
+function chatHistoryPayload() {
+  return state.messages.slice(-20).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
+}
+async function getBackendReply(input) {
+  if (modelMode !== "aria") return null;
+  const fnKey = String(localStorage.getItem(ARIA_FN_KEY) || "").trim();
+  const headers = { "Content-Type": "application/json" };
+  if (fnKey) headers["x-functions-key"] = fnKey;
+  let lastErr = null;
+  for (const route of getApiCandidates()) {
+    try {
+      const res = await fetch(route, {
+        method: "POST", headers,
+        body: JSON.stringify({ message: input, history: chatHistoryPayload(), mode: "text", voice_mode: false }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+      const version = String(data.version || "").trim();
+      chipEl.textContent = version ? "ARIA " + version : "ARIA (live)";
+      return String(data.reply || "").trim() || null;
+    } catch (err) { lastErr = err; }
+  }
+  const msg = String((lastErr && lastErr.message) || "");
+  if (/401|unauthor|forbidden/i.test(msg))           chipEl.textContent = "ARIA (key needed)";
+  else if (/429|too many|rate limit|quota/i.test(msg)) chipEl.textContent = "ARIA (busy)";
+  else if (/\b5\d\d\b|backend error/i.test(msg))      chipEl.textContent = "ARIA (error)";
+  else                                                  chipEl.textContent = "ARIA (offline)";
+  return null;
+}
+
+/*  Markdown renderer  */
+function escHtml(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
 function renderMd(text) {
-  if (!text) return '';
-
-  // 1. Extract and protect fenced code blocks
+  if (!text) return "";
   const cb = [];
   text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const label = lang || 'code';
+    const label = lang || "code";
     cb.push(
-      `<div class="code-block">` +
-        `<div class="code-header"><span>${label}</span>` +
-          `<button class="code-copy-btn" onclick="copyCode(this)">Copy</button>` +
-        `</div>` +
-        `<pre><code class="language-${label}">${esc(code.trimEnd())}</code></pre>` +
-      `</div>`
+      '<div class="code-block">' +
+        '<div class="code-header"><span>' + label + '</span>' +
+          '<button class="code-copy-btn" onclick="copyCode(this)">Copy</button>' +
+        '</div>' +
+        '<pre><code class="language-' + label + '">' + escHtml(code.trimEnd()) + '</code></pre>' +
+      '</div>'
     );
-    return `%%CB${cb.length - 1}%%`;
+    return "%%CB" + (cb.length - 1) + "%%";
   });
 
-  // 2. Tables
+  /* Tables */
   text = text.replace(/^\|(.+)\|\r?\n\|[-| :]+\|\r?\n((?:\|.+\|\r?\n?)+)/gm, (_, h, b) => {
-    const ths  = h.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
-    const rows = b.trim().split('\n').map(r => {
-      const tds = r.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
-      return `<tr>${tds}</tr>`;
-    }).join('');
-    return `<div class="table-wrap"><table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    const ths = h.split("|").filter(c => c.trim()).map(c => "<th>" + c.trim() + "</th>").join("");
+    const rows = b.trim().split("\n").map(r => {
+      const tds = r.split("|").filter(c => c.trim()).map(c => "<td>" + c.trim() + "</td>").join("");
+      return "<tr>" + tds + "</tr>";
+    }).join("");
+    return '<div class="table-wrap"><table><thead><tr>' + ths + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   });
 
-  // 3. Inline code
+  /* Inline code */
   text = text.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
 
-  // 4. Headings
-  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  text = text.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
-  text = text.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+  /* Headings */
+  text = text.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+  text = text.replace(/^## (.+)$/gm,  "<h2>$1</h2>");
+  text = text.replace(/^# (.+)$/gm,   "<h1>$1</h1>");
 
-  // 5. Bullet lists — group consecutive items
+  /* Bullet lists */
   text = text.replace(/((?:^[-*] .+\n?)+)/gm, m => {
-    const items = m.trim().split('\n').map(l => `<li>${l.replace(/^[-*] /, '')}</li>`).join('');
-    return `<ul>${items}</ul>`;
+    const items = m.trim().split("\n").map(l => "<li>" + l.replace(/^[-*] /, "") + "</li>").join("");
+    return "<ul>" + items + "</ul>";
   });
 
-  // 6. Numbered lists
+  /* Numbered lists */
   text = text.replace(/((?:^\d+\. .+\n?)+)/gm, m => {
-    const items = m.trim().split('\n').map(l => `<li>${l.replace(/^\d+\. /, '')}</li>`).join('');
-    return `<ol>${items}</ol>`;
+    const items = m.trim().split("\n").map(l => "<li>" + l.replace(/^\d+\. /, "") + "</li>").join("");
+    return "<ol>" + items + "</ol>";
   });
 
-  // 7. Blockquotes
-  text = text.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+  /* Blockquotes */
+  text = text.replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>");
 
-  // 8. Bold / italic
-  text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  text = text.replace(/\*\*(.+?)\*\*/g,      '<strong>$1</strong>');
-  text = text.replace(/\*(.+?)\*/g,           '<em>$1</em>');
+  /* Bold / italic */
+  text = text.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
+  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/\*(.+?)\*/g, "<em>$1</em>");
 
-  // 9. Links
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  /* Links */
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-  // 10. Horizontal rules
-  text = text.replace(/^---$/gm, '<hr/>');
+  /* HR */
+  text = text.replace(/^---$/gm, "<hr/>");
 
-  // 11. Paragraph wrapping
+  /* Paragraphs */
   text = text.split(/\n\n+/).map(p => {
     p = p.trim();
-    if (!p) return '';
+    if (!p) return "";
     if (/^<(h[1-6]|ul|ol|blockquote|div|hr|table)/.test(p)) return p;
-    return `<p>${p.replace(/\n/g, '<br>')}</p>`;
-  }).join('\n');
+    return "<p>" + p.replace(/\n/g, "<br>") + "</p>";
+  }).join("\n");
 
-  // 12. Restore code blocks
-  cb.forEach((block, i) => { text = text.replace(`%%CB${i}%%`, block); });
+  /* Restore code blocks */
+  cb.forEach((block, i) => { text = text.replace("%%CB" + i + "%%", block); });
   return text;
 }
 
-/* ======================================================================
-   STREAMING TEXT EFFECT
-====================================================================== */
-async function streamText(el, fullText) {
-  let out = '';
-  for (let i = 0; i < fullText.length; i += CONFIG.STREAM_CHUNK) {
-    out += fullText.slice(i, i + CONFIG.STREAM_CHUNK);
-    el.innerHTML = renderMd(out);
-    scrollBot();
-    await sleep(CONFIG.STREAM_SPEED);
-  }
-  // Final pass: full markdown + syntax highlighting
-  el.innerHTML = renderMd(fullText);
-  el.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
-}
-
-/* ======================================================================
-   COPY CODE — must be global for inline onclick
-====================================================================== */
 function copyCode(btn) {
-  const code = btn.closest('.code-block').querySelector('code').innerText;
+  const code = btn.closest(".code-block").querySelector("code").innerText;
   navigator.clipboard.writeText(code).then(() => {
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-  }).catch(() => { btn.textContent = 'Error'; });
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+  }).catch(() => { btn.textContent = "Error"; });
 }
 
-/* ======================================================================
-   SUGGESTION CLICK — must be global for inline onclick
-====================================================================== */
-function handleSuggestion(txt) { sendMessage(txt); }
+/*  Chat history management  */
+const genId = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+const trunc = (s, n = 40) => s.length > n ? s.slice(0, n) + "\u2026" : s;
 
-/* ======================================================================
-   LOCAL STORAGE
-====================================================================== */
-function saveState() {
+function loadChats() {
   try {
-    localStorage.setItem('bg_chats',  JSON.stringify(state.chats));
-    localStorage.setItem('bg_active', state.activeChatId || '');
-    localStorage.setItem('bg_model',  state.currentModel);
-  } catch (_) {}
-}
-
-function loadState() {
-  try {
-    const s = localStorage.getItem('bg_chats');
-    if (s) state.chats = JSON.parse(s);
-    state.activeChatId = localStorage.getItem('bg_active') || null;
-    state.currentModel  = localStorage.getItem('bg_model')  || 'standard';
-    // Validate saved active ID still exists
+    const d = JSON.parse(localStorage.getItem(CHATS_HISTORY_KEY) || "[]");
+    state.chats = Array.isArray(d) ? d : [];
+    state.activeChatId = localStorage.getItem(ACTIVE_CHAT_KEY) || null;
     if (state.activeChatId && !state.chats.find(c => c.id === state.activeChatId)) {
       state.activeChatId = state.chats[0]?.id || null;
     }
-  } catch (_) { state.chats = []; }
+  } catch { state.chats = []; }
 }
 
-/* ======================================================================
-   CHAT MANAGEMENT
-====================================================================== */
-function newChat() {
+function saveChats() {
+  try {
+    localStorage.setItem(CHATS_HISTORY_KEY, JSON.stringify(state.chats.slice(0, 100)));
+    if (state.activeChatId) localStorage.setItem(ACTIVE_CHAT_KEY, state.activeChatId);
+  } catch {}
+}
+
+function getActiveChat() { return state.chats.find(c => c.id === state.activeChatId) || null; }
+
+function newChatSession() {
   const id = genId();
-  state.chats.unshift({ id, title: 'New chat', messages: [], createdAt: Date.now(), model: state.currentModel });
+  state.chats.unshift({ id, title: "New chat", messages: [], createdAt: Date.now() });
   state.activeChatId = id;
-  saveState(); renderSidebar(); renderArea(); focusInput();
+  state.messages = [];
+  state.context = [];
+  saveChats();
+  renderSidebar();
+  renderAll();
+  promptEl.focus();
 }
 
-function setChat(id) {
+function switchChat(id) {
   state.activeChatId = id;
-  saveState(); renderSidebar(); renderArea(); scrollBot(); closeSidebar();
+  const chat = getActiveChat();
+  state.messages = chat ? [...chat.messages] : [];
+  state.context = [];
+  saveChats();
+  renderSidebar();
+  renderAll();
+  closeSidebar();
 }
 
 function deleteChat(id, e) {
   e.stopPropagation();
   state.chats = state.chats.filter(c => c.id !== id);
-  if (state.activeChatId === id) state.activeChatId = state.chats[0]?.id || null;
-  saveState(); renderSidebar(); renderArea();
-}
-
-const getActiveChat = () => state.chats.find(c => c.id === state.activeChatId) || null;
-
-/* ======================================================================
-   API CALL (real or mock)
-====================================================================== */
-async function callAPI(message, sessionId) {
-  if (state.currentModel === 'omega') {
-    await sleep(250);
-    return "BaobabGPT Omega is coming soon. Stay tuned.";
+  if (state.activeChatId === id) {
+    state.activeChatId = state.chats[0]?.id || null;
+    const chat = getActiveChat();
+    state.messages = chat ? [...chat.messages] : [];
+    state.context = [];
   }
-
-  if (CONFIG.USE_MOCK) {
-    await sleep(700 + Math.random() * 500);
-    return MOCK[state.mockIdx++ % MOCK.length];
-  }
-  const res = await fetch(CONFIG.API_URL, {
-    method:  'POST',
-    headers: { 'Authorization': `Bearer ${CONFIG.API_TOKEN}`, 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ message, session_id: sessionId, mode: state.currentModel }),
-  });
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  return (await res.json()).response;
+  saveChats(); renderSidebar(); renderAll();
 }
 
-/* ======================================================================
-   SEND MESSAGE
-====================================================================== */
-async function sendMessage(txt) {
-  txt = txt.trim();
-  if (!txt || state.isGenerating) return;
+/*  DOM refs  */
+const feedEl      = document.getElementById("feed");
+const feedInner   = document.getElementById("feed-inner");
+const welcomeEl   = document.getElementById("welcome-state");
+const composerEl  = document.getElementById("composer");
+const promptEl    = document.getElementById("prompt");
+const sendBtn     = document.getElementById("send");
+const chipEl      = document.getElementById("model-chip");
 
-  if (!state.activeChatId) newChat();
-  const chat = getActiveChat();
-  if (!chat) return;
-
-  if (chat.messages.length === 0) chat.title = trunc(txt, 40);
-
-  chat.messages.push({ role: 'user', content: txt, ts: Date.now() });
-  saveState();
-  renderMessages(chat);
-  renderSidebar();
-  scrollBot();
-
-  state.isGenerating = true;
-  updateSendBtn(); updatePlaceholder();
-
-  const tRow = buildTypingRow();
-  $('messages-list')?.appendChild(tRow);
-  scrollBot();
-
-  try {
-    if (state.currentModel === 'research') await showResearchSteps(tRow);
-
-    const response = await callAPI(txt, chat.id);
-    tRow.remove();
-
-    chat.messages.push({ role: 'assistant', content: response, ts: Date.now() });
-    saveState();
-
-    const aRow = buildAIRow();
-    $('messages-list')?.appendChild(aRow);
-    await streamText(aRow.querySelector('.msg-bubble'), response);
-
-    if (state.currentModel === 'research') addSourcePills(aRow);
-
-  } catch (err) {
-    tRow.remove();
-    const eRow = buildAIRow();
-    $('messages-list')?.appendChild(eRow);
-    eRow.querySelector('.msg-bubble').innerHTML =
-      '<span style="color:#e05;">&#x26A0; Something went wrong. Please try again.</span>';
-    console.error('BaobabGPT error:', err);
-  }
-
-  state.isGenerating = false;
-  updateSendBtn(); updatePlaceholder(); scrollBot();
-}
-
-/* ======================================================================
-   RESEARCH MODE — animated search steps
-====================================================================== */
-async function showResearchSteps(typingRow) {
-  const steps = [
-    { icon: '🔍', text: 'Searching Google...'     },
-    { icon: '📄', text: 'Reading sources...'       },
-    { icon: '✅', text: 'Verifying information...' },
-    { icon: '🧠', text: 'Synthesising findings...' },
-  ];
-  const bub = typingRow.querySelector('.msg-bubble');
-  bub.innerHTML = '';
-  const ind = document.createElement('div');
-  ind.className = 'research-indicator';
-  bub.appendChild(ind);
-
-  for (const step of steps) {
-    const line = document.createElement('div');
-    line.className = 'research-step';
-    line.innerHTML = `<span class="step-icon">${step.icon}</span><span>${step.text}</span>`;
-    ind.appendChild(line);
-    scrollBot();
-    await sleep(900);
-  }
-  await sleep(350);
-}
-
-function addSourcePills(rowEl) {
-  const srcs      = ['reuters.com','bbc.com','techcrunch.com','mg.co.za','aljazeera.com','techcabal.com'];
-  const n         = 3 + Math.floor(Math.random() * 3);
-  const conf      = 87 + Math.floor(Math.random() * 11);
-  const timeSec   = 8  + Math.floor(Math.random() * 14);
-  const bub       = rowEl.querySelector('.msg-bubble');
-
-  const pillsEl = document.createElement('div');
-  pillsEl.className = 'source-pills';
-  srcs.slice(0, n).forEach(s => {
-    const p = document.createElement('span');
-    p.className = 'source-pill';
-    p.textContent = s;
-    pillsEl.appendChild(p);
-  });
-
-  const barEl = document.createElement('div');
-  barEl.className   = 'conf-bar';
-  barEl.textContent = `Confidence: ${conf}%  ·  Sources: ${n}  ·  Time: ${timeSec}s`;
-
-  bub.appendChild(pillsEl);
-  bub.appendChild(barEl);
-}
-
-/* ======================================================================
-   MESSAGE ROW BUILDERS
-====================================================================== */
-function buildTypingRow() {
-  const r = document.createElement('div');
-  r.className = 'message-row ai';
-  r.innerHTML =
-    `<div class="message-avatar ai">B</div>
-     <div class="message-content">
-       <div class="msg-bubble">
-         <div class="typing-indicator">
-           <div class="typing-dot"></div>
-           <div class="typing-dot"></div>
-           <div class="typing-dot"></div>
-         </div>
-       </div>
-     </div>`;
-  return r;
-}
-
-function buildAIRow() {
-  const r = document.createElement('div');
-  r.className = 'message-row ai';
-  r.innerHTML =
-    `<div class="message-avatar ai">B</div>
-     <div class="message-content"><div class="msg-bubble"></div></div>`;
-  return r;
-}
-
-/* ======================================================================
-   RENDER: MESSAGES LIST
-====================================================================== */
-function renderMessages(chat) {
-  const inner = $('chat-inner');
-  if (!inner) return;
-  inner.innerHTML = '<div id="messages-list"></div>';
-  const list = $('messages-list');
-
-  chat.messages.forEach(msg => {
-    const row = document.createElement('div');
-    row.className = `message-row ${msg.role === 'user' ? 'user' : 'ai'}`;
-
-    if (msg.role === 'user') {
-      row.innerHTML =
-        `<div class="message-content">
-           <div class="msg-bubble">${esc(msg.content).replace(/\n/g, '<br>')}</div>
-         </div>
-         <div class="message-avatar uav">${CONFIG.USER_NAME[0]}</div>`;
-    } else {
-      row.innerHTML =
-        `<div class="message-avatar ai">B</div>
-         <div class="message-content"><div class="msg-bubble">${renderMd(msg.content)}</div></div>`;
-      row.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
-    }
-    list.appendChild(row);
-  });
-}
-
-/* ======================================================================
-   RENDER: CHAT AREA (empty state or messages)
-====================================================================== */
-function renderArea() {
-  const inner = $('chat-inner');
-  if (!inner) return;
-  const chat = getActiveChat();
-
-  if (!chat || chat.messages.length === 0) {
-    inner.innerHTML =
-      `<div id="empty-state">
-         <div class="empty-logo">B</div>
-         <h2 class="empty-title">BaobabGPT</h2>
-         <p class="empty-subtitle">Africa's AI. Always learning.</p>
-         <div class="suggestion-grid">
-           ${SUGGESTIONS.map(s =>
-             `<button class="suggestion-card" onclick="handleSuggestion(${JSON.stringify(s.text)})">
-                <span class="s-icon">${s.icon}</span>${esc(s.text)}
-              </button>`
-           ).join('')}
-         </div>
-       </div>`;
-  } else {
-    renderMessages(chat);
-  }
-}
-
-/* ======================================================================
-   RENDER: SIDEBAR (chat history grouped by date)
-====================================================================== */
+/*  Sidebar render  */
 function renderSidebar() {
-  const hist = $('sidebar-history');
-  if (!hist) return;
-
-  const tod = new Date().setHours(0, 0, 0, 0);
+  const histEl = document.getElementById("sidebar-hist");
+  if (!histEl) return;
+  if (!state.chats.length) { histEl.innerHTML = '<div style="padding:12px 10px;font-size:12.5px;color:var(--muted)">No chats yet</div>'; return; }
+  const tod = new Date().setHours(0,0,0,0);
   const DAY = 86400000;
-  const buckets = [[], [], [], []];
-
+  const buckets = [[],[],[],[]];
   state.chats.forEach(c => {
     if      (c.createdAt >= tod)           buckets[0].push(c);
     else if (c.createdAt >= tod - DAY)     buckets[1].push(c);
-    else if (c.createdAt >= tod - 7 * DAY) buckets[2].push(c);
+    else if (c.createdAt >= tod - 7*DAY)   buckets[2].push(c);
     else                                    buckets[3].push(c);
   });
-
-  const labels = ['Today', 'Yesterday', 'Previous 7 days', 'Older'];
-
-  hist.innerHTML = buckets.map((bucket, i) => {
-    if (bucket.length === 0) return '';
+  const labels = ["Today","Yesterday","Previous 7 days","Older"];
+  histEl.innerHTML = buckets.map((bucket, i) => {
+    if (!bucket.length) return "";
     const items = bucket.map(c =>
-      `<div class="chat-item ${c.id === state.activeChatId ? 'active' : ''}" onclick="setChat('${c.id}')">
-         <span class="chat-item-title">${esc(c.title)}</span>
-         <button class="chat-item-delete" onclick="deleteChat('${c.id}', event)" title="Delete">
-           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-             <polyline points="3 6 5 6 21 6"/>
-             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-             <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-           </svg>
-         </button>
-       </div>`
-    ).join('');
-    return `<div class="history-group"><div class="history-group-label">${labels[i]}</div>${items}</div>`;
-  }).join('');
+      '<div class="hist-item' + (c.id === state.activeChatId ? " active" : "") + '" onclick="switchChat(\'' + c.id + '\')">' +
+        '<span class="hist-item-title">' + escHtml(c.title) + '</span>' +
+        '<button class="hist-delete" onclick="deleteChat(\'' + c.id + '\',event)" title="Delete">' +
+          '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
+        '</button>' +
+      '</div>'
+    ).join("");
+    return '<div class="hist-group-label">' + labels[i] + '</div>' + items;
+  }).join("");
 }
 
-/* ======================================================================
-   MODEL DROPDOWN
-====================================================================== */
-function renderDropdown() {
-  const dd = $('model-dropdown');
-  if (!dd) return;
-  const parts = [];
-  MODELS.forEach((m, idx) => {
-    if (m.id === 'omega') {
-      parts.push('<div class="model-divider"></div>');
-    }
-    parts.push(
-      `<div class="model-option ${m.id === state.currentModel ? 'sel' : ''} ${m.id === 'omega' ? 'omega' : ''}" onclick="selectModel('${m.id}')">
-         <span>${m.icon}</span>
-         <span class="model-opt-name">${m.name}</span>
-         <span class="model-opt-desc">${m.desc}</span>
-         ${m.comingSoon ? '<span class="model-soon-badge">Coming Soon</span>' : ''}
-         ${m.id === state.currentModel ? '<span class="model-opt-chk">&#x2713;</span>' : ''}
-       </div>`
-    );
-  });
-  dd.innerHTML = parts.join('');
+/*  Feed DOM  */
+function scrollDown() { feedEl.scrollTop = feedEl.scrollHeight; }
+
+function addMsgDom(role, text, animate) {
+  const article = document.createElement("article");
+  article.className = "msg " + role;
+  if (!animate) article.style.animation = "none";
+  const row = document.createElement("div");
+  row.className = "msg-row";
+  const av = document.createElement("div");
+  av.className = "avatar";
+  av.textContent = role === "assistant" ? "B" : sessionEmail.charAt(0).toUpperCase();
+  const body = document.createElement("div");
+  body.className = "msg-body";
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  if (role === "user") {
+    bubble.textContent = text;
+  } else {
+    bubble.innerHTML = renderMd(text);
+    bubble.querySelectorAll("pre code").forEach(b => { try { hljs.highlightElement(b); } catch {} });
+  }
+  body.appendChild(bubble);
+  row.appendChild(av); row.appendChild(body);
+  article.appendChild(row);
+  feedInner.appendChild(article);
+  return bubble;
 }
 
-function selectModel(id) {
-  state.currentModel = id;
-  const m = MODELS.find(m => m.id === id);
-  $('model-icon').textContent  = m.icon;
-  $('model-label').textContent = m.name;
-  $('omega-banner').style.display = id === 'omega' ? 'block' : 'none';
-  renderDropdown();
-  closeDropdown();
-  updatePlaceholder();
-  saveState();
+function addThinkingDom() {
+  const article = document.createElement("article");
+  article.className = "msg assistant";
+  article.id = "thinkingMsg";
+  article.innerHTML = '<div class="msg-row"><div class="avatar">B</div><div class="msg-body"><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div></div></div>';
+  feedInner.appendChild(article);
 }
 
-const toggleDropdown = () => {
-  const dd = $('model-dropdown');
-  const opening = !dd.classList.contains('open');
-  dd.classList.toggle('open', opening);
-  if (opening) renderDropdown();
-};
-const closeDropdown = () => $('model-dropdown')?.classList.remove('open');
+function removeThinking() { const el = document.getElementById("thinkingMsg"); if (el) el.remove(); }
 
-/* ======================================================================
-   INPUT HELPERS
-====================================================================== */
-const updateSendBtn = () => {
-  const btn = $('send-btn'), inp = $('message-input');
-  if (btn) btn.disabled = !inp?.value.trim() || state.isGenerating;
-};
-
-const updatePlaceholder = () => {
-  const inp = $('message-input');
-  if (inp) inp.placeholder = state.currentModel === 'research'
-    ? 'Ask BaobabGPT to research anything…'
-    : state.currentModel === 'omega'
-    ? 'BaobabGPT Omega is coming soon…'
-    : 'Message BaobabGPT';
-};
-
-const focusInput = () => setTimeout(() => $('message-input')?.focus(), 80);
-
-/* ======================================================================
-   MOBILE SIDEBAR TOGGLE
-====================================================================== */
-const openSidebar  = () => { $('sidebar').classList.add('open');    $('sidebar-overlay').classList.add('open'); };
-const closeSidebar = () => { $('sidebar').classList.remove('open'); $('sidebar-overlay').classList.remove('open'); };
-
-/* ======================================================================
-   EVENT LISTENERS
-====================================================================== */
-function wireEvents() {
-  // New chat
-  $('new-chat-btn').addEventListener('click', () => { newChat(); closeSidebar(); });
-
-  // Send button click
-  $('send-btn').addEventListener('click', () => {
-    const inp = $('message-input');
-    const txt = inp.value.trim();
-    if (txt) { inp.value = ''; inp.style.height = 'auto'; updateSendBtn(); sendMessage(txt); }
-  });
-
-  // Textarea: auto-resize + enable/disable send
-  const inp = $('message-input');
-  inp.addEventListener('input', () => {
-    inp.style.height = 'auto';
-    inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
-    updateSendBtn();
-  });
-
-  // Enter sends, Shift+Enter is new line
-  inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (!$('send-btn').disabled) {
-        const txt = inp.value.trim();
-        if (txt) { inp.value = ''; inp.style.height = 'auto'; updateSendBtn(); sendMessage(txt); }
-      }
-    }
-  });
-
-  // Model selector
-  $('model-selector-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown(); });
-  $('model-dropdown').addEventListener('click', e => e.stopPropagation()); // prevent close on inner click
-  document.addEventListener('click', closeDropdown);
-
-  // Mobile
-  $('hamburger').addEventListener('click', openSidebar);
-  $('sidebar-overlay').addEventListener('click', closeSidebar);
+function renderAll() {
+  feedInner.innerHTML = "";
+  welcomeEl.style.display = (state.messages.length || state.thinking) ? "none" : "flex";
+  state.messages.forEach(m => addMsgDom(m.role, m.content, false));
+  if (state.thinking) addThinkingDom();
+  scrollDown();
 }
 
-/* ======================================================================
-   APP INIT
-====================================================================== */
-function init() {
-  loadState();
+/*  Streaming  */
+async function streamReply(fullText) {
+  removeThinking();
+  const article = document.createElement("article");
+  article.className = "msg assistant";
+  article.style.animation = "none";
+  const row = document.createElement("div");
+  row.className = "msg-row";
+  const av = document.createElement("div");
+  av.className = "avatar";
+  av.textContent = "B";
+  const body = document.createElement("div");
+  body.className = "msg-body";
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble streaming-cursor";
+  body.appendChild(bubble); row.appendChild(av); row.appendChild(body);
+  article.appendChild(row); feedInner.appendChild(article);
 
-  // Sync model UI badge
-  const m = MODELS.find(m => m.id === state.currentModel) || MODELS[1];
-  $('model-icon').textContent  = m.icon;
-  $('model-label').textContent = m.name;
+  const words = fullText.split(/(\s+)/);
+  let rendered = "";
+  for (let i = 0; i < words.length; i++) {
+    rendered += words[i];
+    bubble.textContent = rendered;
+    scrollDown();
+    if (words[i].trim()) await new Promise(r => setTimeout(r, 24 + Math.random() * 28));
+  }
 
+  bubble.classList.remove("streaming-cursor");
+  bubble.innerHTML = renderMd(fullText);
+  bubble.querySelectorAll("pre code").forEach(b => { try { hljs.highlightElement(b); } catch {} });
+  scrollDown();
+  state.messages.push({ role: "assistant", content: fullText });
+
+  /* Persist to active chat */
+  const chat = getActiveChat();
+  if (chat) { chat.messages = [...state.messages]; saveChats(); }
+}
+
+/*  Submit  */
+async function handleSubmit() {
+  const text = promptEl.value.trim();
+  if (!text || state.thinking) return;
+
+  /* Create chat if none */
+  if (!state.activeChatId || !getActiveChat()) {
+    const id = genId();
+    state.chats.unshift({ id, title: trunc(text, 40), messages: [], createdAt: Date.now() });
+    state.activeChatId = id;
+  } else {
+    const chat = getActiveChat();
+    if (chat && chat.messages.length === 0) chat.title = trunc(text, 40);
+  }
+
+  state.messages.push({ role: "user", content: text });
+  state.thinking = true;
+  sendBtn.disabled = true;
+  promptEl.value = "";
+  autoResize();
+
+  welcomeEl.style.display = "none";
+  addMsgDom("user", text, true);
+  addThinkingDom();
+  scrollDown();
+
+  /* Persist user message */
+  const chat = getActiveChat();
+  if (chat) { chat.messages = [...state.messages]; saveChats(); }
   renderSidebar();
-  renderArea();
-  $('omega-banner').style.display = state.currentModel === 'omega' ? 'block' : 'none';
-  wireEvents();
-  updatePlaceholder();
-  focusInput();
+
+  await new Promise(r => setTimeout(r, 260 + Math.random() * 220));
+  const backendReply = await getBackendReply(text);
+  const reply = backendReply || getReply(text);
+  state.thinking = false;
+
+  state.context.push({user: text, bot: reply});
+  if (state.context.length > 5) state.context.shift();
+
+  await streamReply(reply);
+
+  sendBtn.disabled = false;
+  promptEl.focus();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+/*  Auto-resize textarea  */
+function autoResize() {
+  promptEl.style.height = "0px";
+  promptEl.style.height = Math.min(promptEl.scrollHeight, 200) + "px";
+}
+
+/*  Model selector  */
+function applyModelMode(mode, persist) {
+  modelMode = (mode === "baobab_gpti") ? "baobab_gpti" : "aria";
+  if (persist) localStorage.setItem(MODEL_MODE_KEY, modelMode);
+  const selIcon = document.getElementById("sel-icon");
+  const selName = document.getElementById("sel-name");
+  const chkBaobab = document.getElementById("chk-baobab");
+  const chkAria   = document.getElementById("chk-aria");
+  const optBaobab = document.querySelector('[data-model="baobab_gpti"]');
+  const optAria   = document.querySelector('[data-model="aria"]');
+  if (modelMode === "aria") {
+    chipEl.textContent = "ARIA (live)";
+    if (selIcon) selIcon.textContent = "\u2728";
+    if (selName) selName.textContent = "ARIA";
+    if (chkBaobab) chkBaobab.style.display = "none";
+    if (chkAria)   chkAria.style.display   = "inline";
+    if (optBaobab) optBaobab.classList.remove("sel");
+    if (optAria)   optAria.classList.add("sel");
+  } else {
+    chipEl.textContent = "baobab gpti (local)";
+    if (selIcon) selIcon.textContent = "\u{1F9E0}";
+    if (selName) selName.textContent = "baobab gpti";
+    if (chkBaobab) chkBaobab.style.display = "inline";
+    if (chkAria)   chkAria.style.display   = "none";
+    if (optBaobab) optBaobab.classList.add("sel");
+    if (optAria)   optAria.classList.remove("sel");
+  }
+}
+
+/*  Sidebar mobile  */
+function openSidebar()  { document.getElementById("sidebar").classList.add("open");    document.getElementById("sidebar-overlay").classList.add("open"); }
+function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebar-overlay").classList.remove("open"); }
+
+/*  Suggestion helper  */
+function useSuggestion(txt) {
+  promptEl.value = txt;
+  autoResize();
+  sendBtn.disabled = false;
+  handleSubmit();
+}
+
+/*  Events  */
+composerEl.addEventListener("submit", e => { e.preventDefault(); handleSubmit(); });
+
+promptEl.addEventListener("input", () => {
+  autoResize();
+  sendBtn.disabled = !promptEl.value.trim() || state.thinking;
+});
+
+promptEl.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+});
+
+/* Model dropdown */
+const modelSelBtn = document.getElementById("model-sel-btn");
+const modelDropdown = document.getElementById("model-dropdown");
+modelSelBtn.addEventListener("click", e => { e.stopPropagation(); modelDropdown.classList.toggle("open"); });
+document.querySelectorAll(".model-opt").forEach(opt => {
+  opt.addEventListener("click", () => {
+    applyModelMode(opt.dataset.model, true);
+    modelDropdown.classList.remove("open");
+  });
+});
+document.addEventListener("click", () => modelDropdown.classList.remove("open"));
+modelDropdown.addEventListener("click", e => e.stopPropagation());
+
+/* New chat btn */
+document.getElementById("new-chat-btn").addEventListener("click", () => { newChatSession(); closeSidebar(); });
+
+/* Mobile */
+const hambBtn = document.getElementById("hamburger");
+const overlay = document.getElementById("sidebar-overlay");
+if (hambBtn) hambBtn.addEventListener("click", openSidebar);
+if (overlay)  overlay.addEventListener("click", closeSidebar);
+
+/*  Init  */
+(function init() {
+  state.knowledge = loadKnowledge();
+  buildIDF();
+  loadChats();
+  /* Load active chat messages */
+  const chat = getActiveChat();
+  if (chat) { state.messages = [...chat.messages]; } else { state.messages = []; }
+  applyModelMode(localStorage.getItem(MODEL_MODE_KEY) || "aria", false);
+  renderSidebar();
+  renderAll();
+  autoResize();
+  sendBtn.disabled = true;
+  setTimeout(() => promptEl.focus(), 100);
+})();
 </script>
 </body>
 </html>
