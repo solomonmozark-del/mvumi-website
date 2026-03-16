@@ -415,6 +415,16 @@
     .send-btn svg { width: 15px; height: 15px; }
     .composer-hint { max-width: 820px; margin: 6px auto 0; text-align: center; font-size: 11.5px; color: var(--muted); }
     .composer-hint code { font-size: 11px; background: #eef0fb; padding: 1px 5px; border-radius: 4px; color: #5553cc; }
+    /* Tool trace card */
+    .tool-trace { margin-top:10px; border:1px dashed #cfd5e6; background:#f7f9ff; border-radius:10px; padding:8px 12px; font-size:12px; line-height:1.5; color:#4a5370; }
+    .tool-trace strong { color:#2f3758; font-weight:700; }
+    /* Model picker enhancements */
+    .model-filter-tabs { display:flex; gap:4px; padding:8px 10px 4px; border-bottom:1px solid #e5e8f2; flex-wrap:wrap; }
+    .model-filter-tab { font-size:11px; padding:3px 10px; border-radius:12px; border:1px solid #d0d4e8; background:#fff; color:#a0a8c0; cursor:pointer; transition:.15s; }
+    .model-filter-tab.active { background:#5553cc; color:#fff; border-color:#5553cc; }
+    .model-pin-btn { font-size:13px; padding:0 3px; background:none; border:none; cursor:pointer; color:#d0d4e8; line-height:1; border-radius:4px; }
+    .model-pin-btn.pinned { color:#f5a623; }
+    .model-group-label { font-size:10px; font-weight:700; color:#a0a8c0; text-transform:uppercase; letter-spacing:.06em; padding:6px 12px 2px; }
 
     /* Mobile */
     #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.38); z-index: 90; }
@@ -513,13 +523,83 @@
             <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24" style="opacity:0.6"><path d="M7 10l5 5 5-5z"/></svg>
           </button>
           <div class="model-dropdown" id="model-dropdown">
-            <div class="model-opt" data-model="baobab_gpti">
-              <span class="model-opt-icon">&#x1F9E0;</span>
-              <div class="model-opt-info">
-                <div class="model-opt-name">baobab gpti</div>
-                <div class="model-opt-desc">Local &middot; runs in browser</div>
+            <div class="model-filter-tabs" id="model-filter-tabs">
+              <button class="model-filter-tab active" data-filter="all">All</button>
+              <button class="model-filter-tab" data-filter="local">Local</button>
+              <button class="model-filter-tab" data-filter="groq">Groq</button>
+              <button class="model-filter-tab" data-filter="openrouter">OpenRouter</button>
+            </div>
+            <div id="model-opt-list">
+              <div class="model-group-label" data-group="pinned" style="display:none">&#9733; Pinned</div>
+              <div id="pinned-models-list"></div>
+              <div class="model-group-label" data-group="recent" style="display:none">&#128336; Recently used</div>
+              <div id="recent-models-list"></div>
+              <div class="model-group-label" data-group="local">Local</div>
+              <div class="model-opt" data-model="baobab_gpti" data-provider="local">
+                <span class="model-opt-icon">&#x1F9E0;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">baobab gpti</div>
+                  <div class="model-opt-desc">Local &middot; runs in browser</div>
+                </div>
+                <button class="model-pin-btn" data-pin="baobab_gpti" title="Pin model" onclick="event.stopPropagation();togglePin('baobab_gpti')">&#9733;</button>
+                <span class="model-opt-check" id="chk-baobab" style="display:none">&#10003;</span>
               </div>
-              <span class="model-opt-check" id="chk-baobab">&#10003;</span>
+              <div class="model-group-label" data-group="groq">Groq</div>
+              <div class="model-opt" data-model="groq:llama-3.1-8b-instant" data-provider="groq">
+                <span class="model-opt-icon">&#x26A1;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">Llama 3.1 8B</div>
+                  <div class="model-opt-desc">Groq &middot; fast &middot; free tier</div>
+                </div>
+                <button class="model-pin-btn" data-pin="groq:llama-3.1-8b-instant" title="Pin model" onclick="event.stopPropagation();togglePin('groq:llama-3.1-8b-instant')">&#9733;</button>
+                <span class="model-opt-check" id="chk-groq-8b" style="display:none">&#10003;</span>
+              </div>
+              <div class="model-opt" data-model="groq:llama-3.3-70b-versatile" data-provider="groq">
+                <span class="model-opt-icon">&#x26A1;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">Llama 3.3 70B</div>
+                  <div class="model-opt-desc">Groq &middot; powerful</div>
+                </div>
+                <button class="model-pin-btn" data-pin="groq:llama-3.3-70b-versatile" title="Pin model" onclick="event.stopPropagation();togglePin('groq:llama-3.3-70b-versatile')">&#9733;</button>
+                <span class="model-opt-check" id="chk-groq-70b" style="display:none">&#10003;</span>
+              </div>
+              <div class="model-opt" data-model="groq:gemma2-9b-it" data-provider="groq">
+                <span class="model-opt-icon">&#x26A1;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">Gemma 2 9B</div>
+                  <div class="model-opt-desc">Groq &middot; Google</div>
+                </div>
+                <button class="model-pin-btn" data-pin="groq:gemma2-9b-it" title="Pin model" onclick="event.stopPropagation();togglePin('groq:gemma2-9b-it')">&#9733;</button>
+                <span class="model-opt-check" id="chk-groq-gemma" style="display:none">&#10003;</span>
+              </div>
+              <div class="model-group-label" data-group="openrouter">OpenRouter</div>
+              <div class="model-opt" data-model="or:x-ai/grok-3-mini" data-provider="openrouter">
+                <span class="model-opt-icon">&#127752;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">Grok 3 Mini</div>
+                  <div class="model-opt-desc">OpenRouter &middot; xAI</div>
+                </div>
+                <button class="model-pin-btn" data-pin="or:x-ai/grok-3-mini" title="Pin model" onclick="event.stopPropagation();togglePin('or:x-ai/grok-3-mini')">&#9733;</button>
+                <span class="model-opt-check" id="chk-or-grok" style="display:none">&#10003;</span>
+              </div>
+              <div class="model-opt" data-model="or:deepseek/deepseek-r1:free" data-provider="openrouter">
+                <span class="model-opt-icon">&#127752;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">DeepSeek R1 (free)</div>
+                  <div class="model-opt-desc">OpenRouter &middot; free</div>
+                </div>
+                <button class="model-pin-btn" data-pin="or:deepseek/deepseek-r1:free" title="Pin model" onclick="event.stopPropagation();togglePin('or:deepseek/deepseek-r1:free')">&#9733;</button>
+                <span class="model-opt-check" id="chk-or-deepseek" style="display:none">&#10003;</span>
+              </div>
+              <div class="model-opt" data-model="or:google/gemini-2.0-flash-exp:free" data-provider="openrouter">
+                <span class="model-opt-icon">&#127752;</span>
+                <div class="model-opt-info">
+                  <div class="model-opt-name">Gemini 2.0 Flash (free)</div>
+                  <div class="model-opt-desc">OpenRouter &middot; Google</div>
+                </div>
+                <button class="model-pin-btn" data-pin="or:google/gemini-2.0-flash-exp:free" title="Pin model" onclick="event.stopPropagation();togglePin('or:google/gemini-2.0-flash-exp:free')">&#9733;</button>
+                <span class="model-opt-check" id="chk-or-gemini" style="display:none">&#10003;</span>
+              </div>
             </div>
           </div>
         </div>
@@ -557,7 +637,7 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M7 11L12 6L17 11M12 6V18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </form>
-      <p class="composer-hint">Enter to send &middot; Shift+Enter for new line &middot; <code>/teach question =&gt; answer</code></p>
+      <p class="composer-hint">Enter to send &middot; Shift+Enter for new line &middot; <code>/teach question =&gt; answer</code> &middot; <code>/remember note</code> &middot; <code>/tools</code></p>
     </div>
   </main>
 </div>
@@ -578,6 +658,11 @@ const KNOWLEDGE_KEY      = "stargen_mini_model_v1";
 const MODEL_MODE_KEY     = "stargen_model_mode_v1";
 const CHATS_HISTORY_KEY  = "baobab_chats_v1";
 const ACTIVE_CHAT_KEY    = "baobab_active_chat_v1";
+const GROQ_KEY_STORE_KEY    = "baobab_groq_key_v1";
+const MODEL_ALLOWLIST_KEY   = "baobab_enabled_models_v1";
+const SESSION_MEMORY_KEY    = "baobab_session_memory_v1";
+const MODEL_PINS_KEY        = "baobab_model_pins_v1";
+const MODEL_RECENTS_KEY     = "baobab_model_recents_v1";
 
 /*  Default knowledge  */
 const DEFAULT_KNOWLEDGE = [
@@ -798,6 +883,7 @@ const state = {
   idf: {},
   chats: [],
   activeChatId: null,
+  sessionMemory: [],
 };
 
 let modelMode = "baobab_gpti";
@@ -964,9 +1050,19 @@ function solveBasicMath(input) {
 /*  Main reply logic  */
 function getReply(input) {
   let r;
-  if ((r = handleTeachCommand(input)))  return r;
-  if ((r = handleForgetCommand(input))) return r;
-  if ((r = handleListCommand(input)))   return r;
+  if ((r = handleTeachCommand(input)))       return r;
+  if ((r = handleForgetCommand(input)))      return r;
+  if ((r = handleListCommand(input)))        return r;
+  if ((r = handleRememberCommand(input)))    return r;
+  if ((r = handleMemoriesCommand(input)))    return r;
+  if ((r = handleForgetMemoryCommand(input))) return r;
+  if ((r = handleSetKeyCommand(input)))      return r;
+  if ((r = handleClearKeyCommand(input)))    return r;
+  if ((r = handleKeyStatusCommand(input)))   return r;
+  const tool = runAgentTool(input);
+  if (tool) return tool.output + (tool.trace ? "
+
+" + tool.trace : "");
   const math = solveBasicMath(input);
   if (math !== null) return math;
 
@@ -1026,7 +1122,7 @@ function getReply(input) {
     return pick(["Goodbye! Come back anytime.", "See you later! It was nice chatting.", "Take care! I'll be here when you need me.", "Bye! Have a great day!"]);
 
   if (/^(help|commands|\?)\s*$/i.test(n) || /\bhelp me\b/.test(n))
-    return "Here's what I can do:\n\u2022 Ask me questions on any topic\n\u2022 /teach question => answer  teach me new things\n\u2022 /forget question  remove knowledge\n\u2022 /list  see what I've learned\n\nI know about Zimbabwe, Africa, science, history, geography, programming, animals, and much more.\n\nTip: If I get something wrong, say \"actually [correct answer]\" and I'll learn!";
+    return "Here's what I can do:\n\u2022 Ask me questions on any topic\n\u2022 /teach question => answer  teach me new things\n\u2022 /forget question  remove knowledge\n\u2022 /list  see what I've learned\n\u2022 /remember note  save a session memory\n\u2022 /memories  list session memories\n\u2022 /forgetmemory <index|text>  remove a memory\n\u2022 /setkey key  set Groq API key (prefix or: for OpenRouter)\n\u2022 /clearkey  remove saved API keys\n\u2022 /tools  list all agent tools\n\nI know about Zimbabwe, Africa, science, history, geography, programming, animals, and much more.\n\nTip: If I get something wrong, say \"actually [correct answer]\" and I'll learn!";
 
   if (/\b(you('| a)re (smart|clever|cool|awesome|amazing|great|good|brilliant|helpful|nice|the best))\b/.test(n))
     return pick(["Aw, thank you! That really means a lot!", "Thanks! I try my best!", "You're too kind! I'm just doing my thing."]);
@@ -1068,8 +1164,64 @@ function getReply(input) {
 }
 
 async function getBackendReply(input) {
-  if (modelMode !== "baobab_gpti") return null;
-  // Baobab-only mode: use local knowledge engine response path.
+  if (modelMode === "baobab_gpti") return null;
+  const msgs = state.messages.map(m => ({role: m.role, content: m.content}));
+
+  /* Try proxy backend first */
+  try {
+    const res = await fetch("https://mvumi.me/api/baobab/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ messages: msgs, model: modelMode, mode: modelMode })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.reply || data.content || data.text || null;
+    }
+  } catch (_) {}
+
+  /* Direct Groq */
+  if (modelMode.startsWith("groq:")) {
+    const apiKey = localStorage.getItem(GROQ_KEY_STORE_KEY);
+    if (!apiKey) return "⚠️ No Groq API key set. Use `/setkey your-key` to add one.";
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer " + apiKey},
+        body: JSON.stringify({ model: modelMode.slice(5), messages: msgs, max_tokens: 1024 })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || null;
+      }
+      const err = await res.json().catch(() => ({}));
+      return "⚠️ Groq error: " + (err.error?.message || res.status);
+    } catch (e) { return "⚠️ Groq request failed: " + e.message; }
+  }
+
+  /* Direct OpenRouter */
+  if (modelMode.startsWith("or:")) {
+    const apiKey = localStorage.getItem(GROQ_KEY_STORE_KEY + "_or");
+    if (!apiKey) return "⚠️ No OpenRouter API key set. Use `/setkey or:your-key` to add one.";
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey,
+          "HTTP-Referer": location.origin,
+          "X-Title": "BaobabGPT"
+        },
+        body: JSON.stringify({ model: modelMode.slice(3), messages: msgs, max_tokens: 1024 })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || null;
+      }
+      const err = await res.json().catch(() => ({}));
+      return "⚠️ OpenRouter error: " + (err.error?.message || res.status);
+    } catch (e) { return "⚠️ OpenRouter request failed: " + e.message; }
+  }
   return null;
 }
 
@@ -1342,6 +1494,241 @@ async function streamReply(fullText) {
 }
 
 /*  Submit  */
+/* ─────────────────────────────────────────────────────────────────────────
+   Session memory
+   ─────────────────────────────────────────────────────────────────────── */
+function loadSessionMemory() {
+  try { return JSON.parse(localStorage.getItem(SESSION_MEMORY_KEY) || "[]").slice(0, 80); }
+  catch (_) { return []; }
+}
+function saveSessionMemory() {
+  localStorage.setItem(SESSION_MEMORY_KEY, JSON.stringify(state.sessionMemory.slice(0, 80)));
+}
+function formatSessionMemoryList() {
+  if (!state.sessionMemory.length) return "No memories saved yet. Use `/remember note` to save one.";
+  return "**Session Memories:**\n" + state.sessionMemory.map((m, i) => (i + 1) + ". " + m).join("\n");
+}
+function handleRememberCommand(input) {
+  const m = input.match(/^\s*\/remember\s+(.+)/i);
+  if (!m) return null;
+  const note = m[1].trim();
+  if (!note) return "Usage: /remember your note here";
+  if (!state.sessionMemory.includes(note)) {
+    state.sessionMemory.unshift(note);
+    saveSessionMemory();
+  }
+  return "\u2713 Remembered: " + note;
+}
+function handleMemoriesCommand(input) {
+  if (!/^\s*\/memories\s*$/i.test(input)) return null;
+  return formatSessionMemoryList();
+}
+function handleForgetMemoryCommand(input) {
+  const m = input.match(/^\s*\/forgetmemory\s+(.*)/i);
+  if (!m) return null;
+  const arg = m[1].trim();
+  if (!arg) return "Usage: /forgetmemory <number or exact text>";
+  const idx = parseInt(arg, 10);
+  if (!isNaN(idx) && idx >= 1 && idx <= state.sessionMemory.length) {
+    const removed = state.sessionMemory.splice(idx - 1, 1)[0];
+    saveSessionMemory();
+    return "\u2713 Removed memory #" + idx + ": " + removed;
+  }
+  const found = state.sessionMemory.indexOf(arg);
+  if (found !== -1) {
+    state.sessionMemory.splice(found, 1);
+    saveSessionMemory();
+    return "\u2713 Removed: " + arg;
+  }
+  return "Memory not found. Use `/memories` to see your saved memories.";
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   API key management commands
+   ─────────────────────────────────────────────────────────────────────── */
+function handleSetKeyCommand(input) {
+  const m = input.match(/^\s*\/setkey\s+(or:)?(.+)/i);
+  if (!m) return null;
+  const isOr = !!m[1];
+  const key = m[2].trim();
+  if (!key) return "Usage: /setkey your-api-key  (prefix with or: for OpenRouter)";
+  if (isOr) {
+    localStorage.setItem(GROQ_KEY_STORE_KEY + "_or", key);
+    return "\u2713 OpenRouter API key saved.";
+  }
+  localStorage.setItem(GROQ_KEY_STORE_KEY, key);
+  return "\u2713 Groq API key saved.";
+}
+function handleClearKeyCommand(input) {
+  if (!/^\s*\/clearkey\s*$/i.test(input)) return null;
+  localStorage.removeItem(GROQ_KEY_STORE_KEY);
+  localStorage.removeItem(GROQ_KEY_STORE_KEY + "_or");
+  return "\u2713 All API keys cleared.";
+}
+function handleKeyStatusCommand(input) {
+  if (!/^\s*\/keystatus\s*$/i.test(input)) return null;
+  const g = localStorage.getItem(GROQ_KEY_STORE_KEY);
+  const o = localStorage.getItem(GROQ_KEY_STORE_KEY + "_or");
+  return "**API key status:**\n\u2022 Groq: " + (g ? "\u2713 set (" + g.slice(0, 6) + "\u2026)" : "not set") +
+    "\n\u2022 OpenRouter: " + (o ? "\u2713 set (" + o.slice(0, 6) + "\u2026)" : "not set");
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Agent tool runner
+   ─────────────────────────────────────────────────────────────────────── */
+function renderToolTraceHtml(name, inputStr, output) {
+  return '<div class="tool-trace"><strong>\u2699\ufe0f tool: ' + escHtml(name) + '</strong>' +
+    (inputStr ? '<br><span style="color:#7a829c">input: ' + escHtml(inputStr) + '</span>' : '') +
+    '<br><span style="color:#2a7a40">\u2192 ' + escHtml(String(output)) + '</span></div>';
+}
+function getEnabledModelSummary() {
+  const catalog = [
+    {id: "baobab_gpti",                         label: "BaobabGPT Local"},
+    {id: "groq:llama-3.1-8b-instant",           label: "Llama 3.1 8B (Groq)"},
+    {id: "groq:llama-3.3-70b-versatile",        label: "Llama 3.3 70B (Groq)"},
+    {id: "groq:gemma2-9b-it",                   label: "Gemma 2 9B (Groq)"},
+    {id: "or:x-ai/grok-3-mini",                 label: "Grok 3 Mini (OpenRouter)"},
+    {id: "or:deepseek/deepseek-r1:free",        label: "DeepSeek R1 free (OpenRouter)"},
+    {id: "or:google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash free (OpenRouter)"},
+  ];
+  return catalog.map((m, i) =>
+    (i + 1) + ". " + m.label + (m.id === modelMode ? " \u2190 active" : "")).join("\n");
+}
+function runAgentTool(input) {
+  const t = input.trim();
+  if (/^\s*\/tools\s*$/i.test(t)) {
+    const out = "Available tools:\n/time  /date  /calc <expr>  /models  /keystatus  /tools\n/remember <note>  /memories  /forgetmemory <idx|text>\n/setkey <key>  /clearkey";
+    return {name:"tools", output: out, trace: renderToolTraceHtml("tools", "", out)};
+  }
+  if (/^\s*\/time\s*$/i.test(t)) {
+    const out = new Date().toLocaleTimeString();
+    return {name:"time", output:"Current time: " + out, trace: renderToolTraceHtml("time", "", out)};
+  }
+  if (/^\s*\/date\s*$/i.test(t)) {
+    const out = new Date().toLocaleDateString("en-US", {weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    return {name:"date", output:"Today is " + out, trace: renderToolTraceHtml("date", "", out)};
+  }
+  if (/^\s*\/calc\s+/i.test(t)) {
+    const expr = t.replace(/^\s*\/calc\s+/i, "").trim();
+    let result;
+    try {
+      if (!/^[\d+\-*/.() %e\s]+$/i.test(expr)) throw new Error("unsafe expression");
+      result = Function('"use strict"; return (' + expr + ')')();
+    } catch (e) { result = "error: " + e.message; }
+    return {name:"calc", output: expr + " = " + result, trace: renderToolTraceHtml("calc", expr, String(result))};
+  }
+  if (/^\s*\/models\s*$/i.test(t)) {
+    const out = getEnabledModelSummary();
+    return {name:"models", output:"**Available models:**\n" + out, trace: renderToolTraceHtml("models", "", out)};
+  }
+  return null;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Model helpers, pin & recents
+   ─────────────────────────────────────────────────────────────────────── */
+function getModelLabel(id) {
+  const labels = {
+    "baobab_gpti":                         "BaobabGPT Local",
+    "groq:llama-3.1-8b-instant":           "Llama 3.1 8B",
+    "groq:llama-3.3-70b-versatile":        "Llama 3.3 70B",
+    "groq:gemma2-9b-it":                   "Gemma 2 9B",
+    "or:x-ai/grok-3-mini":                 "Grok 3 Mini",
+    "or:deepseek/deepseek-r1:free":        "DeepSeek R1",
+    "or:google/gemini-2.0-flash-exp:free": "Gemini 2.0 Flash",
+  };
+  return labels[id] || id;
+}
+function getModelIcon(id) {
+  if (id === "baobab_gpti") return "\uD83E\uDDE0";
+  if (id.startsWith("groq:")) return "\u26A1";
+  return "\uD83C\uDF10";
+}
+function getPinnedModels() {
+  try { return JSON.parse(localStorage.getItem(MODEL_PINS_KEY) || "[]"); } catch (_) { return []; }
+}
+function savePinnedModels(pins) {
+  localStorage.setItem(MODEL_PINS_KEY, JSON.stringify(pins));
+}
+function togglePin(modelId) {
+  const pins = getPinnedModels();
+  const idx  = pins.indexOf(modelId);
+  if (idx === -1) pins.unshift(modelId); else pins.splice(idx, 1);
+  savePinnedModels(pins);
+  renderPinnedSection();
+  updatePinButtons();
+}
+function getRecentModels() {
+  try { return JSON.parse(localStorage.getItem(MODEL_RECENTS_KEY) || "[]"); } catch (_) { return []; }
+}
+function recordModelUsage(modelId) {
+  if (modelId === "baobab_gpti") return;
+  const r = getRecentModels().filter(m => m !== modelId);
+  r.unshift(modelId);
+  localStorage.setItem(MODEL_RECENTS_KEY, JSON.stringify(r.slice(0, 5)));
+  renderRecentSection();
+}
+function buildMiniOpt(modelId) {
+  const pinned   = getPinnedModels().includes(modelId);
+  const active   = modelId === modelMode;
+  const provider = modelId === "baobab_gpti" ? "local" : modelId.startsWith("groq:") ? "groq" : "openrouter";
+  return '<div class="model-opt" data-model="' + modelId + '" data-provider="' + provider + '">' +
+    '<span class="model-opt-icon">' + getModelIcon(modelId) + '</span>' +
+    '<div class="model-opt-info"><div class="model-opt-name">' + getModelLabel(modelId) + '</div></div>' +
+    '<button class="model-pin-btn' + (pinned ? ' pinned' : '') + '" data-pin="' + modelId +
+      '" title="Pin" onclick="event.stopPropagation();togglePin(\'' + modelId + '\')">\u2605</button>' +
+    (active ? '<span style="color:#5553cc;font-weight:700;">&#10003;</span>' : '') +
+    '</div>';
+}
+function attachMiniOptListeners(container) {
+  container.querySelectorAll(".model-opt").forEach(opt =>
+    opt.addEventListener("click", () => {
+      applyModelMode(opt.dataset.model, true);
+      document.getElementById("model-dropdown").classList.remove("open");
+    })
+  );
+}
+function renderPinnedSection() {
+  const pins      = getPinnedModels();
+  const container = document.getElementById("pinned-models-list");
+  const label     = document.querySelector('[data-group="pinned"]');
+  if (!container) return;
+  if (!pins.length) { container.innerHTML = ""; if (label) label.style.display = "none"; return; }
+  if (label) label.style.display = "";
+  container.innerHTML = pins.map(buildMiniOpt).join("");
+  attachMiniOptListeners(container);
+}
+function renderRecentSection() {
+  const recents   = getRecentModels();
+  const container = document.getElementById("recent-models-list");
+  const label     = document.querySelector('[data-group="recent"]');
+  if (!container) return;
+  if (!recents.length) { container.innerHTML = ""; if (label) label.style.display = "none"; return; }
+  if (label) label.style.display = "";
+  container.innerHTML = recents.map(buildMiniOpt).join("");
+  attachMiniOptListeners(container);
+}
+function updatePinButtons() {
+  const pins = getPinnedModels();
+  document.querySelectorAll(".model-pin-btn").forEach(btn =>
+    btn.classList.toggle("pinned", pins.includes(btn.dataset.pin))
+  );
+}
+function applyProviderFilter(filter) {
+  document.querySelectorAll(".model-filter-tab").forEach(t =>
+    t.classList.toggle("active", t.dataset.filter === filter)
+  );
+  document.querySelectorAll("#model-opt-list > .model-opt, #model-opt-list > .model-group-label").forEach(el => {
+    if (filter === "all") { el.style.display = ""; return; }
+    if (el.classList.contains("model-group-label")) {
+      const g = el.dataset.group;
+      el.style.display = (g === "pinned" || g === "recent" || g === filter) ? "" : "none";
+    } else {
+      el.style.display = (el.dataset.provider === filter) ? "" : "none";
+    }
+  });
+}
+
 async function handleSubmit() {
   const text = promptEl.value.trim();
   if (!text || state.thinking) return;
@@ -1373,8 +1760,18 @@ async function handleSubmit() {
   renderSidebar();
 
   await new Promise(r => setTimeout(r, 260 + Math.random() * 220));
-  const backendReply = await getBackendReply(text);
-  const reply = backendReply || getReply(text);
+
+  /* Agent tool check first */
+  const toolResult = runAgentTool(text);
+  let reply;
+  if (toolResult) {
+    reply = toolResult.output + (toolResult.trace ? "
+
+" + toolResult.trace : "");
+  } else {
+    const backendReply = await getBackendReply(text);
+    reply = backendReply || getReply(text);
+  }
   state.thinking = false;
 
   state.context.push({user: text, bot: reply});
@@ -1394,17 +1791,24 @@ function autoResize() {
 
 /*  Model selector  */
 function applyModelMode(mode, persist) {
-  modelMode = "baobab_gpti";
-  if (persist) localStorage.setItem(MODEL_MODE_KEY, modelMode);
+  modelMode = mode || "baobab_gpti";
+  if (persist) {
+    localStorage.setItem(MODEL_MODE_KEY, modelMode);
+    recordModelUsage(modelMode);
+  }
+  const label = getModelLabel(modelMode);
+  const icon  = getModelIcon(modelMode);
+  chipEl.textContent = label;
   const selIcon = document.getElementById("sel-icon");
   const selName = document.getElementById("sel-name");
-  const chkBaobab = document.getElementById("chk-baobab");
-  const optBaobab = document.querySelector('[data-model="baobab_gpti"]');
-  chipEl.textContent = "BaobabGPT Local";
-  if (selIcon) selIcon.textContent = "\u{1F9E0}";
-  if (selName) selName.textContent = "baobab gpti";
-  if (chkBaobab) chkBaobab.style.display = "inline";
-  if (optBaobab) optBaobab.classList.add("sel");
+  if (selIcon) selIcon.textContent = icon;
+  if (selName) selName.textContent = label;
+  /* Refresh checkmarks */
+  document.querySelectorAll(".model-opt").forEach(el => {
+    const chk = el.querySelector(".model-opt-check");
+    if (chk) chk.style.display = (el.dataset.model === modelMode) ? "inline" : "none";
+    el.classList.toggle("sel", el.dataset.model === modelMode);
+  });
 }
 
 /*  Sidebar mobile  */
@@ -1435,11 +1839,14 @@ promptEl.addEventListener("keydown", e => {
 const modelSelBtn = document.getElementById("model-sel-btn");
 const modelDropdown = document.getElementById("model-dropdown");
 modelSelBtn.addEventListener("click", e => { e.stopPropagation(); modelDropdown.classList.toggle("open"); });
-document.querySelectorAll(".model-opt").forEach(opt => {
+document.querySelectorAll("#model-opt-list > .model-opt").forEach(opt => {
   opt.addEventListener("click", () => {
     applyModelMode(opt.dataset.model, true);
     modelDropdown.classList.remove("open");
   });
+});
+document.querySelectorAll(".model-filter-tab").forEach(tab => {
+  tab.addEventListener("click", e => { e.stopPropagation(); applyProviderFilter(tab.dataset.filter); });
 });
 document.addEventListener("click", () => modelDropdown.classList.remove("open"));
 modelDropdown.addEventListener("click", e => e.stopPropagation());
@@ -1455,13 +1862,17 @@ if (overlay)  overlay.addEventListener("click", closeSidebar);
 
 /*  Init  */
 (function init() {
-  state.knowledge = loadKnowledge();
+  state.knowledge    = loadKnowledge();
+  state.sessionMemory = loadSessionMemory();
   buildIDF();
   loadChats();
   /* Load active chat messages */
   const chat = getActiveChat();
   if (chat) { state.messages = [...chat.messages]; } else { state.messages = []; }
   applyModelMode(localStorage.getItem(MODEL_MODE_KEY) || "baobab_gpti", false);
+  renderPinnedSection();
+  renderRecentSection();
+  updatePinButtons();
   renderSidebar();
   renderAll();
   autoResize();
@@ -1471,4 +1882,3 @@ if (overlay)  overlay.addEventListener("click", closeSidebar);
 </script>
 </body>
 </html>
-1
