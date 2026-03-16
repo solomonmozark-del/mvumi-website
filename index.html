@@ -441,6 +441,14 @@
       .sug-grid { grid-template-columns: 1fr; max-width: 100%; }
       .composer-hint { display: none; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -496,7 +504,7 @@
     </header>
 
     <header class="topbar">
-      <div class="model-chip" id="model-chip">BaobabGPT 1.0</div>
+      <div class="model-chip" id="model-chip">BaobabGPT Local</div>
       <div class="topbar-right">
         <div class="model-selector-wrap">
           <button class="model-sel-btn" id="model-sel-btn" aria-label="Select model">
@@ -513,14 +521,6 @@
               </div>
               <span class="model-opt-check" id="chk-baobab">&#10003;</span>
             </div>
-            <div class="model-opt" data-model="aria">
-              <span class="model-opt-icon">&#x2728;</span>
-              <div class="model-opt-info">
-                <div class="model-opt-name">ARIA</div>
-                <div class="model-opt-desc">Live &middot; powered by Azure</div>
-              </div>
-              <span class="model-opt-check" id="chk-aria" style="display:none">&#10003;</span>
-            </div>
           </div>
         </div>
       </div>
@@ -529,20 +529,20 @@
     <section id="feed" class="feed">
       <div id="welcome-state" class="welcome-wrap">
         <div class="welcome-icon">B</div>
-        <h2 class="welcome-title">What can I help with?</h2>
-        <p class="welcome-sub">Africa&rsquo;s AI &mdash; always learning</p>
+        <h2 class="welcome-title">Build with BaobabGPT</h2>
+        <p class="welcome-sub">Zimbabwe-first intelligence for Africa and beyond</p>
         <div class="sug-grid">
-          <button class="sug-card" onclick="useSuggestion('What is the capital of Zimbabwe?')">
-            <span class="sug-icon">&#x1F1FF;&#x1F1FC;</span>About Zimbabwe
+          <button class="sug-card" onclick="useSuggestion('Give me a clear summary of Zimbabwe\'s economy in 2026')">
+            <span class="sug-icon">&#x1F4CA;</span>Zimbabwe economy brief
           </button>
-          <button class="sug-card" onclick="useSuggestion('Tell me a fun fact')">
-            <span class="sug-icon">&#x1F4A1;</span>Random fun fact
+          <button class="sug-card" onclick="useSuggestion('Help me write a professional bio for my portfolio')">
+            <span class="sug-icon">&#x1F4DD;</span>Portfolio writing help
           </button>
-          <button class="sug-card" onclick="useSuggestion('What is artificial intelligence?')">
-            <span class="sug-icon">&#x1F916;</span>Explain AI
+          <button class="sug-card" onclick="useSuggestion('Teach me AI in simple terms with 3 practical examples')">
+            <span class="sug-icon">&#x1F916;</span>Learn AI simply
           </button>
-          <button class="sug-card" onclick="useSuggestion('What is the largest country in Africa?')">
-            <span class="sug-icon">&#x1F5FA;&#xFE0F;</span>African geography
+          <button class="sug-card" onclick="useSuggestion('Create a 7-day study plan for Python beginners')">
+            <span class="sug-icon">&#x1F4DA;</span>Python 7-day plan
           </button>
         </div>
       </div>
@@ -575,9 +575,6 @@ if (userLblEl) userLblEl.textContent = sessionEmail.split("@")[0] || "User";
 
 /*  Storage keys  */
 const KNOWLEDGE_KEY      = "stargen_mini_model_v1";
-const ARIA_FN_KEY        = "aria_function_key_v1";
-const ARIA_API_URL_KEY   = "aria_api_url_v1";
-const ARIA_API_DEFAULT   = "https://aria-mvumi.azurewebsites.net/api/aria-chat";
 const MODEL_MODE_KEY     = "stargen_model_mode_v1";
 const CHATS_HISTORY_KEY  = "baobab_chats_v1";
 const ACTIVE_CHAT_KEY    = "baobab_active_chat_v1";
@@ -803,7 +800,7 @@ const state = {
   activeChatId: null,
 };
 
-let modelMode = "aria";
+let modelMode = "baobab_gpti";
 
 /*  NLP utils  */
 function normalize(t) {
@@ -1070,39 +1067,9 @@ function getReply(input) {
   return pick(fallbacks);
 }
 
-/*  ARIA backend  */
-function parseApiCandidates(v) { return String(v || "").split(",").map(v => v.trim()).filter(Boolean); }
-function getApiCandidates() {
-  const saved = parseApiCandidates(localStorage.getItem(ARIA_API_URL_KEY) || "");
-  return [...new Set([...saved, ARIA_API_DEFAULT])];
-}
-function chatHistoryPayload() {
-  return state.messages.slice(-20).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
-}
 async function getBackendReply(input) {
-  if (modelMode !== "aria") return null;
-  const fnKey = String(localStorage.getItem(ARIA_FN_KEY) || "").trim();
-  const headers = { "Content-Type": "application/json" };
-  if (fnKey) headers["x-functions-key"] = fnKey;
-  let lastErr = null;
-  for (const route of getApiCandidates()) {
-    try {
-      const res = await fetch(route, {
-        method: "POST", headers,
-        body: JSON.stringify({ message: input, history: chatHistoryPayload(), mode: "text", voice_mode: false }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
-      const version = String(data.version || "").trim();
-      chipEl.textContent = version ? "ARIA " + version : "ARIA (live)";
-      return String(data.reply || "").trim() || null;
-    } catch (err) { lastErr = err; }
-  }
-  const msg = String((lastErr && lastErr.message) || "");
-  if (/401|unauthor|forbidden/i.test(msg))           chipEl.textContent = "ARIA (key needed)";
-  else if (/429|too many|rate limit|quota/i.test(msg)) chipEl.textContent = "ARIA (busy)";
-  else if (/\b5\d\d\b|backend error/i.test(msg))      chipEl.textContent = "ARIA (error)";
-  else                                                  chipEl.textContent = "ARIA (offline)";
+  if (modelMode !== "baobab_gpti") return null;
+  // Baobab-only mode: use local knowledge engine response path.
   return null;
 }
 
@@ -1427,31 +1394,17 @@ function autoResize() {
 
 /*  Model selector  */
 function applyModelMode(mode, persist) {
-  modelMode = (mode === "baobab_gpti") ? "baobab_gpti" : "aria";
+  modelMode = "baobab_gpti";
   if (persist) localStorage.setItem(MODEL_MODE_KEY, modelMode);
   const selIcon = document.getElementById("sel-icon");
   const selName = document.getElementById("sel-name");
   const chkBaobab = document.getElementById("chk-baobab");
-  const chkAria   = document.getElementById("chk-aria");
   const optBaobab = document.querySelector('[data-model="baobab_gpti"]');
-  const optAria   = document.querySelector('[data-model="aria"]');
-  if (modelMode === "aria") {
-    chipEl.textContent = "ARIA (live)";
-    if (selIcon) selIcon.textContent = "\u2728";
-    if (selName) selName.textContent = "ARIA";
-    if (chkBaobab) chkBaobab.style.display = "none";
-    if (chkAria)   chkAria.style.display   = "inline";
-    if (optBaobab) optBaobab.classList.remove("sel");
-    if (optAria)   optAria.classList.add("sel");
-  } else {
-    chipEl.textContent = "baobab gpti (local)";
-    if (selIcon) selIcon.textContent = "\u{1F9E0}";
-    if (selName) selName.textContent = "baobab gpti";
-    if (chkBaobab) chkBaobab.style.display = "inline";
-    if (chkAria)   chkAria.style.display   = "none";
-    if (optBaobab) optBaobab.classList.add("sel");
-    if (optAria)   optAria.classList.remove("sel");
-  }
+  chipEl.textContent = "BaobabGPT Local";
+  if (selIcon) selIcon.textContent = "\u{1F9E0}";
+  if (selName) selName.textContent = "baobab gpti";
+  if (chkBaobab) chkBaobab.style.display = "inline";
+  if (optBaobab) optBaobab.classList.add("sel");
 }
 
 /*  Sidebar mobile  */
@@ -1508,7 +1461,7 @@ if (overlay)  overlay.addEventListener("click", closeSidebar);
   /* Load active chat messages */
   const chat = getActiveChat();
   if (chat) { state.messages = [...chat.messages]; } else { state.messages = []; }
-  applyModelMode(localStorage.getItem(MODEL_MODE_KEY) || "aria", false);
+  applyModelMode(localStorage.getItem(MODEL_MODE_KEY) || "baobab_gpti", false);
   renderSidebar();
   renderAll();
   autoResize();
@@ -1518,3 +1471,4 @@ if (overlay)  overlay.addEventListener("click", closeSidebar);
 </script>
 </body>
 </html>
+1
