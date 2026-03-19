@@ -1,9 +1,12 @@
 :root {
-  --bg: #f5f1e8;
-  --ink: #111111;
-  --muted: #4f4a42;
-  --accent: #c6542a;
-  --line: rgba(17, 17, 17, 0.18);
+  --bg-1: #f8f6ef;
+  --bg-2: #eef3eb;
+  --card: rgba(255, 255, 255, 0.74);
+  --line: rgba(17, 38, 18, 0.12);
+  --ink: #17301a;
+  --muted: #4a6550;
+  --accent: #1e7a3f;
+  --accent-hover: #196436;
 }
 
 * {
@@ -20,132 +23,70 @@ body {
   font-family: "Manrope", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 12% 14%, rgba(198, 84, 42, 0.16), transparent 46%),
-    radial-gradient(circle at 88% 82%, rgba(39, 130, 109, 0.16), transparent 44%),
-    linear-gradient(150deg, #f9f5ec 0%, var(--bg) 55%, #efe7da 100%);
+    radial-gradient(900px 500px at -10% -20%, rgba(30, 122, 63, 0.12), transparent 70%),
+    radial-gradient(900px 500px at 115% 120%, rgba(23, 48, 26, 0.13), transparent 70%),
+    linear-gradient(130deg, var(--bg-1), var(--bg-2));
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  padding: 2rem clamp(1.2rem, 4vw, 4rem);
-  position: relative;
-  overflow-x: hidden;
+  place-items: center;
+  padding: 24px;
 }
 
-.grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.1;
-  background-image: radial-gradient(#000 0.45px, transparent 0.45px);
-  background-size: 3px 3px;
+.page {
+  width: min(780px, 100%);
 }
 
-.site-header,
-.hero,
-.site-footer {
-  position: relative;
-  z-index: 1;
+.card {
+  border: 1px solid var(--line);
+  background: var(--card);
+  backdrop-filter: blur(6px);
+  border-radius: 20px;
+  padding: 52px 40px;
+  box-shadow: 0 16px 38px rgba(14, 38, 18, 0.1);
+  animation: rise 500ms ease-out;
 }
 
-.site-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: clamp(2.5rem, 7vw, 7rem);
-}
-
-.brand {
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 1.5rem;
-  text-decoration: none;
-  color: var(--ink);
-  letter-spacing: 0.01em;
-}
-
-.menu {
-  display: flex;
-  gap: 1.2rem;
-}
-
-.menu a {
-  color: var(--muted);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 180ms ease;
-}
-
-.menu a:hover {
-  border-color: var(--line);
-}
-
-.hero {
-  max-width: 760px;
-  animation: rise 620ms ease both;
-}
-
-.kicker {
-  margin: 0;
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.17em;
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.84rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
 h1 {
-  margin: 0.5rem 0 1rem;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(2.2rem, 7vw, 5.1rem);
-  line-height: 1.02;
+  margin: 0;
+  line-height: 1.05;
+  font-size: clamp(2rem, 5.2vw, 4rem);
 }
 
 .lead {
-  margin: 0;
-  max-width: 62ch;
-  font-size: clamp(1rem, 2.4vw, 1.25rem);
-  line-height: 1.7;
+  margin: 16px 0 0;
   color: var(--muted);
+  font-size: clamp(1rem, 2.3vw, 1.26rem);
 }
 
-.cta {
-  margin-top: 2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.8rem 1.1rem;
-  border: 1px solid var(--line);
+.button {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 11px 16px;
   border-radius: 999px;
-  color: var(--ink);
+  border: 1px solid var(--accent);
+  color: #fff;
+  background: var(--accent);
   text-decoration: none;
-  font-weight: 500;
-  backdrop-filter: blur(2px);
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
+  font-weight: 600;
+  transition: transform 140ms ease, background-color 140ms ease;
 }
 
-.cta:hover {
+.button:hover {
   transform: translateY(-1px);
-  border-color: rgba(17, 17, 17, 0.35);
-  background-color: rgba(255, 255, 255, 0.45);
-}
-
-.site-footer {
-  margin-top: 3.2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: 0.9rem;
+  background: var(--accent-hover);
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -154,20 +95,13 @@ h1 {
 }
 
 @media (max-width: 640px) {
-  body {
-    padding-top: 1.3rem;
+  .card {
+    padding: 34px 24px;
+    border-radius: 16px;
   }
 
-  .site-header {
-    margin-bottom: 2.2rem;
-  }
-
-  .menu {
-    gap: 0.85rem;
-    font-size: 0.92rem;
-  }
-
-  .lead {
-    line-height: 1.6;
+  .button {
+    width: 100%;
+    text-align: center;
   }
 }
